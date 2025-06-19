@@ -6,29 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    // No arquivo database/migrations/xxxx_xx_xx_xxxxxx_create_acompanhantes_table.php
-public function up(): void
-{
-    Schema::create('acompanhantes', function (Blueprint $table) {
-        $table->id(); // ID único para cada perfil
-        $table->string('nome_artistico');
-        $table->string('imagem_principal_url'); // URL da foto de capa
-        $table->integer('idade');
-        $table->string('cidade');
-        $table->string('estado', 2); // Ex: SP, RJ
-        $table->text('descricao_curta');
-        $table->decimal('valor_hora', 8, 2); // Preço, ex: 350.00
-        $table->string('whatsapp');
-        $table->timestamps(); // Cria as colunas created_at e updated_at
-    });
-}
+    public function up(): void
+    {
+        Schema::create('acompanhantes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('nome_artistico')->nullable();
+            $table->string('imagem_principal_url')->nullable()->default('https://placehold.co/400x600/ccc/333?text=Perfil');
+            $table->date('data_nascimento')->nullable();
+            $table->text('descricao_curta')->nullable();
+            $table->string('cidade')->nullable();
+            $table->string('estado', 2)->nullable();
+            $table->decimal('valor_hora', 8, 2)->nullable();
+            $table->string('whatsapp')->nullable();
+            $table->timestamps();
+        });
+    }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('acompanhantes');

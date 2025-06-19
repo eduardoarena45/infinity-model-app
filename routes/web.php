@@ -1,20 +1,35 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\VitrineController; // Nosso controller da vitrine
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\VitrineController; // Importa nosso controller
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Aqui é onde definimos as URLs do nosso site.
-|
 */
 
-// Rota para a página inicial (vitrine com todos os perfis)
-// Aponta a URL "/" para o método 'index' do nosso VitrineController.
-Route::get('/', [VitrineController::class, 'index'])->name('vitrine.index');
+// ROTA PRINCIPAL: Agora aponta para o método 'listarCidades' para mostrar as opções.
+Route::get('/', [VitrineController::class, 'listarCidades'])->name('cidades.index');
 
-// Rota para ver um perfil específico
+// NOVA ROTA DE VITRINE: Aceita um parâmetro {cidade} na URL.
+Route::get('/vitrine/{cidade}', [VitrineController::class, 'mostrarPorCidade'])->name('vitrine.por.cidade');
+
+// Rota para o perfil individual (permanece a mesma)
 Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('vitrine.show');
+
+// Rota do Dashboard (padrão do Breeze)
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+
+// Rotas do painel da acompanhante que já criamos
+Route::middleware('auth')->group(function () {
+    Route::get('/meu-perfil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/meu-perfil', [ProfileController::class, 'update'])->name('profile.update');
+});
+
+// Arquivo de rotas de autenticação do Breeze
+require __DIR__.'/auth.php';

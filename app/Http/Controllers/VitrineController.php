@@ -2,25 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Acompanhante; // Importa o Model
+use App\Models\Acompanhante;
 use Illuminate\Http\Request;
 
 class VitrineController extends Controller
 {
-    // Método para a página inicial (a vitrine)
-    public function index()
+    /**
+     * NOVO MÉTODO: Pega todas as cidades distintas que têm perfis
+     * e as envia para uma nova página de seleção.
+     */
+    public function listarCidades()
     {
-        // Busca todos os perfis no banco de dados, ordenando pelos mais recentes
-        $acompanhantes = Acompanhante::latest()->get();
+        // Busca no banco de dados, pega apenas a coluna 'cidade',
+        // remove as duplicadas (distinct) e ordena.
+        $cidades = Acompanhante::select('cidade')
+                                ->whereNotNull('cidade') // Ignora perfis sem cidade preenchida
+                                ->distinct()
+                                ->orderBy('cidade', 'asc')
+                                ->get();
 
-        // Retorna a view 'vitrine.blade.php' e envia a variável $acompanhantes para ela
-        return view('vitrine', ['acompanhantes' => $acompanhantes]);
+        // Retorna a nova view que vamos criar
+        return view('cidades', ['cidades' => $cidades]);
     }
 
-    // Método para a página de perfil individual
+    /**
+     * NOVO MÉTODO: Recebe um nome de cidade da URL, filtra os perfis
+     * e os envia para a view da vitrine.
+     */
+    public function mostrarPorCidade(string $cidade)
+    {
+        // Busca os perfis ONDE a cidade corresponde à da URL.
+        $acompanhantes = Acompanhante::where('cidade', $cidade)->latest()->get();
+
+        // Reutiliza a nossa view 'vitrine.blade.php', passando os perfis filtrados
+        // e também o nome da cidade para usarmos no título.
+        return view('vitrine', [
+            'acompanhantes' => $acompanhantes,
+            'cidadeNome' => $cidade
+        ]);
+    }
+
+    /**
+     * Mostra a página de perfil individual (este método não muda).
+     */
     public function show(Acompanhante $acompanhante)
     {
-        // Retorna a view 'perfil.blade.php' e envia o perfil encontrado
         return view('perfil', ['acompanhante' => $acompanhante]);
     }
 }
