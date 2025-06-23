@@ -18,19 +18,33 @@ class ProfileController extends Controller
     }
 
     public function update(Request $request)
-    {
-        $user = $request->user();
-        $perfil = $user->acompanhante;
-        $validatedData = $request->validate(['nome_artistico' => ['required','string','max:255'],'data_nascimento' => ['required','date'],'cidade' => ['required','string','max:255'],'whatsapp' => ['required','string','max:20'],'descricao_curta' => ['required','string'],'valor_hora' => ['required','numeric','min:0'],'imagem_principal_url' => ['nullable','image','max:2048'],]);
-        if ($request->hasFile('imagem_principal_url')) {
-            if ($perfil->imagem_principal_url) { Storage::disk('public')->delete($perfil->imagem_principal_url); }
-            $path = $request->file('imagem_principal_url')->store('perfis', 'public');
-            $validatedData['imagem_principal_url'] = $path;
-        }
-        $validatedData['estado'] = 'SP';
-        $perfil->update($validatedData);
-        return redirect()->route('profile.edit')->with('status', 'perfil-publico-atualizado');
+{
+    $user = $request->user();
+    $perfil = $user->acompanhante;
+
+    // Validação atualizada para incluir os novos campos
+    $validatedData = $request->validate([
+        'nome_artistico' => ['required', 'string', 'max:255'],
+        'data_nascimento' => ['required', 'date'],
+        'cidade' => ['required', 'string', 'max:255'],
+        'estado' => ['required', 'string', 'max:2'], // Validação para o estado
+        'whatsapp' => ['required', 'string', 'max:20'],
+        'descricao_curta' => ['required', 'string'],
+        'valor_hora' => ['required', 'numeric', 'min:0'],
+        'imagem_principal_url' => ['nullable', 'image', 'max:2048'],
+    ]);
+
+    if ($request->hasFile('imagem_principal_url')) {
+        if ($perfil->imagem_principal_url) { Storage::disk('public')->delete($perfil->imagem_principal_url); }
+        $path = $request->file('imagem_principal_url')->store('perfis', 'public');
+        $validatedData['imagem_principal_url'] = $path;
     }
+
+    // A linha que definia o estado como fixo foi removida.
+    $perfil->update($validatedData);
+
+    return redirect()->route('profile.edit')->with('status', 'perfil-publico-atualizado');
+}
 
     public function uploadGaleria(Request $request)
     {
