@@ -3,42 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Models\Acompanhante;
+use App\Models\Servico;
 use Illuminate\Http\Request;
 
 class VitrineController extends Controller
 {
     /**
-     * NOVO MÉTODO: Pega todas as cidades distintas que têm perfis
-     * e as envia para uma nova página de seleção.
+     * MÉTODO SIMPLIFICADO: Busca apenas as cidades para a página inicial.
      */
     public function listarCidades()
     {
-        // Busca no banco de dados, pega apenas a coluna 'cidade',
-        // remove as duplicadas (distinct) e ordena.
         $cidades = Acompanhante::select('cidade')
-                                ->whereNotNull('cidade') // Ignora perfis sem cidade preenchida
+                                ->whereNotNull('cidade')
                                 ->distinct()
                                 ->orderBy('cidade', 'asc')
                                 ->get();
 
-        // Retorna a nova view que vamos criar
         return view('cidades', ['cidades' => $cidades]);
     }
 
     /**
-     * NOVO MÉTODO: Recebe um nome de cidade da URL, filtra os perfis
-     * e os envia para a view da vitrine.
+     * MÉTODO ATUALIZADO: Agora lida com a vitrine E com os filtros de serviços.
      */
-    public function mostrarPorCidade(string $cidade)
+    public function mostrarPorCidade(Request $request, string $cidade)
     {
-        // Busca os perfis ONDE a cidade corresponde à da URL.
-        $acompanhantes = Acompanhante::where('cidade', $cidade)->latest()->get();
+        $query = Acompanhante::query()->where('cidade', $cidade);
 
-        // Reutiliza a nossa view 'vitrine.blade.php', passando os perfis filtrados
-        // e também o nome da cidade para usarmos no título.
+        // Filtra por serviços, se algum serviço for selecionado no formulário
+        if ($request->filled('servicos')) {
+            $servicosSelecionados = $request->servicos;
+            $query->whereHas('servicos', function ($q) use ($servicosSelecionados) {
+                $q->whereIn('servicos.id', $servicosSelecionados);
+            });
+        }
+
+        $acompanhantes = $query->latest()->get();
+        $servicos = Servico::orderBy('nome')->get(); // Pega todos os serviços para o formulário de filtro
+
         return view('vitrine', [
             'acompanhantes' => $acompanhantes,
-            'cidadeNome' => $cidade
+            'cidadeNome' => $cidade,
+            'servicos' => $servicos,
+            'servicosSelecionados' => $request->input('servicos', []), // Para manter os checkboxes marcados
         ]);
     }
 
@@ -47,6 +53,7 @@ class VitrineController extends Controller
      */
     public function show(Acompanhante $acompanhante)
     {
+        $acompanhante->load('servicos', 'midias'); // Carrega as relações
         return view('perfil', ['acompanhante' => $acompanhante]);
     }
 }
