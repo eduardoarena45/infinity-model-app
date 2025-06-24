@@ -8,7 +8,17 @@
             <div class="md:flex">
                 <div class="md:w-1/3"><img src="{{ Storage::url($acompanhante->imagem_principal_url) }}" alt="Foto de {{ $acompanhante->nome_artistico }}" class="w-full h-full object-cover"></div>
                 <div class="p-8 md:w-2/3">
-                    <h1 class="text-4xl font-bold text-gray-900 dark:text-white">{{ $acompanhante->nome_artistico }}</h1>
+                    <h1 class="text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-x-2">
+    <span>{{ $acompanhante->nome_artistico }}</span>
+    {{-- MOSTRA O SELO SE O PERFIL FOR VERIFICADO --}}
+    @if($acompanhante->is_verified)
+        <span title="Perfil Verificado">
+            <svg class="w-6 h-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a.75.75 0 00-1.06-1.06L9 10.94l-1.72-1.72a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.06 0l3.75-3.75z" clip-rule="evenodd" />
+            </svg>
+        </span>
+    @endif
+</h1>
                     <p class="text-gray-600 dark:text-gray-400 text-lg mt-1">{{ $acompanhante->cidade }}, {{ $acompanhante->estado }} - {{ $acompanhante->idade }} anos</p>
                     <p class="text-gray-700 dark:text-gray-300 mt-6">{{ $acompanhante->descricao_curta }}</p>
 
