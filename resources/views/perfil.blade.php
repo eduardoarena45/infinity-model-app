@@ -1,5 +1,4 @@
 @extends('layouts.public')
-
 @section('title', "Perfil de {$acompanhante->nome_artistico}")
 
 @section('content')
@@ -12,8 +11,24 @@
                     <h1 class="text-4xl font-bold text-gray-900 dark:text-white">{{ $acompanhante->nome_artistico }}</h1>
                     <p class="text-gray-600 dark:text-gray-400 text-lg mt-1">{{ $acompanhante->cidade }}, {{ $acompanhante->estado }} - {{ $acompanhante->idade }} anos</p>
                     <p class="text-gray-700 dark:text-gray-300 mt-6">{{ $acompanhante->descricao_curta }}</p>
+
+                    <!-- NOVA SEÇÃO DE SERVIÇOS -->
+                    @if($acompanhante->servicos->isNotEmpty())
+                        <div class="mt-8">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Serviços</h3>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach($acompanhante->servicos as $servico)
+                                    <span class="inline-block bg-pink-100 text-pink-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-pink-900 dark:text-pink-300">
+                                        {{ $servico->nome }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="mt-8"><span class="text-gray-500">Valor:</span> <span class="text-3xl font-bold text-pink-600">R$ {{ number_format($acompanhante->valor_hora, 2, ',', '.') }} / hora</span></div>
                     <a href="https://wa.me/55{{ $acompanhante->whatsapp }}" target="_blank" class="mt-8 inline-block w-full text-center bg-green-500 text-white font-bold py-4 px-6 rounded-lg text-lg hover:bg-green-600 transition-colors">Entrar em Contato por WhatsApp</a>
+
                     <div class="mt-10">
                         <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b pb-2">Galeria</h3>
                         @if($acompanhante->midias->isNotEmpty())

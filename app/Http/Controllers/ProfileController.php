@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Midia;
+use App\Models\Servico; // Importa o modelo Servico
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,38 +14,44 @@ class ProfileController extends Controller
     public function edit(Request $request)
     {
         $perfil = $request->user()->acompanhante()->firstOrCreate([]);
-        $perfil->load('midias');
-        return view('profile.edit-acompanhante', ['user' => $request->user(),'perfil' => $perfil]);
+        $perfil->load('midias', 'servicos'); // Carrega também os serviços já selecionados
+        $servicosDisponiveis = Servico::orderBy('nome')->get(); // Pega todos os serviços do banco
+
+        return view('profile.edit-acompanhante', [
+            'user' => $request->user(),
+            'perfil' => $perfil,
+            'servicosDisponiveis' => $servicosDisponiveis, // Envia para a view
+        ]);
     }
 
     public function update(Request $request)
-{
-    $user = $request->user();
-    $perfil = $user->acompanhante;
+    {
+        $user = $request->user();
+        $perfil = $user->acompanhante;
+        $validatedData = $request->validate([
+            'nome_artistico' => ['required', 'string', 'max:255'],
+            'data_nascimento' => ['required', 'date'],
+            'cidade' => ['required', 'string', 'max:255'],
+            'estado' => ['required', 'string', 'max:2'],
+            'whatsapp' => ['required', 'string', 'max:20'],
+            'descricao_curta' => ['required', 'string'],
+            'valor_hora' => ['required', 'numeric', 'min:0'],
+            'imagem_principal_url' => ['nullable', 'image', 'max:2048'],
+        ]);
 
-    // Validação atualizada para incluir os novos campos
-    $validatedData = $request->validate([
-        'nome_artistico' => ['required', 'string', 'max:255'],
-        'data_nascimento' => ['required', 'date'],
-        'cidade' => ['required', 'string', 'max:255'],
-        'estado' => ['required', 'string', 'max:2'], // Validação para o estado
-        'whatsapp' => ['required', 'string', 'max:20'],
-        'descricao_curta' => ['required', 'string'],
-        'valor_hora' => ['required', 'numeric', 'min:0'],
-        'imagem_principal_url' => ['nullable', 'image', 'max:2048'],
-    ]);
+        if ($request->hasFile('imagem_principal_url')) {
+            if ($perfil->imagem_principal_url) { Storage::disk('public')->delete($perfil->imagem_principal_url); }
+            $path = $request->file('imagem_principal_url')->store('perfis', 'public');
+            $validatedData['imagem_principal_url'] = $path;
+        }
 
-    if ($request->hasFile('imagem_principal_url')) {
-        if ($perfil->imagem_principal_url) { Storage::disk('public')->delete($perfil->imagem_principal_url); }
-        $path = $request->file('imagem_principal_url')->store('perfis', 'public');
-        $validatedData['imagem_principal_url'] = $path;
+        $perfil->update($validatedData);
+
+        // NOVO: Sincroniza os serviços selecionados no formulário
+        $perfil->servicos()->sync($request->input('servicos', []));
+
+        return redirect()->route('profile.edit')->with('status', 'perfil-publico-atualizado');
     }
-
-    // A linha que definia o estado como fixo foi removida.
-    $perfil->update($validatedData);
-
-    return redirect()->route('profile.edit')->with('status', 'perfil-publico-atualizado');
-}
 
     public function uploadGaleria(Request $request)
     {
