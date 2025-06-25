@@ -43,7 +43,7 @@
         </main>
 
         <footer class="py-6 text-center text-sm text-gray-500 dark:text-gray-400 mt-12">
-            <p>Infinity Model &copy; {{ date('Y') }}. Todos os direitos reservados 2025.</p>
+            <p>Infinity Model &copy; {{ date('Y') }}. Todos os direitos reservados 20251996.</p>
         </footer>
     </body>
 </html>
