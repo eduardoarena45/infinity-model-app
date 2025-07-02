@@ -1,8 +1,15 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VitrineController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+
+// Rota para o perfil individual
+Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('vitrine.show');
+
+// NOVA ROTA para guardar a avaliação
+Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
+// ... resto das rotas
 
 // ROTA PRINCIPAL: Mostra a página para selecionar uma cidade
 Route::get('/', [VitrineController::class, 'listarCidades'])->name('cidades.index');
