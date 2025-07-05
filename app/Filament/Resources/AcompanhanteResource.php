@@ -22,7 +22,7 @@ class AcompanhanteResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Informações Principais')
+                Forms\Components\Section::make('Gestão e Status')
                     ->schema([
                         Forms\Components\Select::make('user_id')
                             ->relationship('user', 'name')
@@ -34,18 +34,18 @@ class AcompanhanteResource extends Resource
                             ->inline(false)
                             ->onColor('success')
                             ->offColor('danger'),
-                    ])->columns(2),
+                        Forms\Components\Toggle::make('is_featured')
+                            ->label('Perfil em Destaque')
+                            ->inline(false)
+                            ->onColor('success')
+                            ->offColor('danger'),
+                    ])->columns(3),
 
                 Forms\Components\Section::make('Dados Públicos')
                     ->schema([
-                        Forms\Components\TextInput::make('nome_artistico')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\DatePicker::make('data_nascimento')
-                            ->required(),
-                        Forms\Components\Textarea::make('descricao_curta')
-                            ->required()
-                            ->columnSpanFull(),
+                        Forms\Components\TextInput::make('nome_artistico')->required()->maxLength(255),
+                        Forms\Components\DatePicker::make('data_nascimento')->required(),
+                        Forms\Components\Textarea::make('descricao_curta')->required()->columnSpanFull(),
                         Forms\Components\TextInput::make('cidade')->required(),
                         Forms\Components\TextInput::make('estado')->required()->maxLength(2),
                         Forms\Components\TextInput::make('whatsapp')->tel()->required(),
@@ -69,9 +69,9 @@ class AcompanhanteResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('imagem_principal_url')->label('Foto')->circular(),
-                Tables\Columns\TextColumn::make('user.name')->label('Utilizadora')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('nome_artistico')->searchable(),
                 Tables\Columns\IconColumn::make('is_verified')->label('Verificado')->boolean(),
+                Tables\Columns\IconColumn::make('is_featured')->label('Destaque')->boolean(),
                 Tables\Columns\TextColumn::make('cidade')->searchable(),
             ])
             ->filters([
@@ -100,7 +100,6 @@ class AcompanhanteResource extends Resource
         ];
     }
 
-    // MÉTODO getPages() COMPLETO E CORRETO
     public static function getPages(): array
     {
         return [
