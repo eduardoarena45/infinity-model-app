@@ -8,11 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Storage;
 
 class Acompanhante extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'user_id',
         'nome_artistico',
@@ -25,6 +31,7 @@ class Acompanhante extends Model
         'whatsapp',
         'is_verified',
         'is_featured',
+        'status', // Inclui o novo campo de status
     ];
 
     /**
@@ -33,13 +40,45 @@ class Acompanhante extends Model
      * @var array
      */
     protected $casts = [
-        // CORREÇÃO: Mudamos 'string' para 'array'.
-        // Isto diz ao Laravel para tratar o campo da imagem como um array,
-        // o que é compatível com o componente de upload do Filament.
         'imagem_principal_url' => 'array',
         'is_verified' => 'boolean',
         'is_featured' => 'boolean',
     ];
+
+    /**
+     * Accessor para a URL completa da foto principal.
+     */
+    public function getFotoPrincipalUrlCompletaAttribute(): ?string
+    {
+        $path = is_array($this->imagem_principal_url) ? ($this->imagem_principal_url[0] ?? null) : $this->imagem_principal_url;
+
+        if ($path && Storage::disk('public')->exists($path)) {
+            return Storage::url($path);
+        }
+
+        return 'https://placehold.co/400x600/ccc/333?text=Sem+Foto';
+    }
+
+    /**
+     * Accessor para a média de notas das avaliações.
+     */
+    public function getNotaMediaAttribute(): float
+    {
+        return round($this->avaliacoes()->avg('nota'), 1);
+    }
+
+    /**
+     * Accessor para calcular a idade.
+     */
+    public function getIdadeAttribute(): ?int
+    {
+        if ($this->data_nascimento) {
+            return Carbon::parse($this->data_nascimento)->age;
+        }
+        return null;
+    }
+
+    // --- RELAÇÕES ---
 
     public function user(): BelongsTo
     {
@@ -59,18 +98,5 @@ class Acompanhante extends Model
     public function avaliacoes(): HasMany
     {
         return $this->hasMany(Avaliacao::class);
-    }
-
-    public function getNotaMediaAttribute(): float
-    {
-        return round($this->avaliacoes()->avg('nota'), 1);
-    }
-
-    public function getIdadeAttribute(): ?int
-    {
-        if ($this->data_nascimento) {
-            return Carbon::parse($this->data_nascimento)->age;
-        }
-        return null;
     }
 }

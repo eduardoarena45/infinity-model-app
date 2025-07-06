@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AcompanhanteResource\Pages;
+use App\Filament\Resources\AcompanhanteResource\RelationManagers;
 use App\Models\Acompanhante;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -10,11 +11,13 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class AcompanhanteResource extends Resource
 {
     protected static ?string $model = Acompanhante::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $navigationGroup = 'Gestão de Perfis';
 
@@ -24,22 +27,17 @@ class AcompanhanteResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Gestão e Status')
                     ->schema([
-                        Forms\Components\Select::make('user_id')
-                            ->relationship('user', 'name')
-                            ->searchable()
-                            ->preload()
+                        Forms\Components\Select::make('user_id')->relationship('user', 'name')->searchable()->preload()->required(),
+                        Forms\Components\Toggle::make('is_verified')->label('Perfil Verificado'),
+                        Forms\Components\Toggle::make('is_featured')->label('Perfil em Destaque'),
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'pendente' => 'Pendente',
+                                'aprovado' => 'Aprovado',
+                                'rejeitado' => 'Rejeitado',
+                            ])
                             ->required(),
-                        Forms\Components\Toggle::make('is_verified')
-                            ->label('Perfil Verificado')
-                            ->inline(false)
-                            ->onColor('success')
-                            ->offColor('danger'),
-                        Forms\Components\Toggle::make('is_featured')
-                            ->label('Perfil em Destaque')
-                            ->inline(false)
-                            ->onColor('success')
-                            ->offColor('danger'),
-                    ])->columns(3),
+                    ])->columns(4),
 
                 Forms\Components\Section::make('Dados Públicos')
                     ->schema([
@@ -56,10 +54,19 @@ class AcompanhanteResource extends Resource
                     ->schema([
                         Forms\Components\FileUpload::make('imagem_principal_url')
                             ->label('Foto Principal')
-                            ->image()
-                            ->imageEditor()
-                            ->directory('perfis')
-                            ->required(),
+                            ->image()->imageEditor()->directory('perfis')->required()
+                            ->saveUploadedFileUsing(function ($file) {
+                                $path = $file->store('perfis', 'public');
+                                $manager = new ImageManager(new Driver());
+                                $imagePath = Storage::disk('public')->path($path);
+                                $image = $manager->read($imagePath);
+                                $logoPath = public_path('images/logo-watermark.png');
+                                if (file_exists($logoPath)) {
+                                    $image->place($logoPath, 'bottom-right', 10, 10, 70);
+                                }
+                                $image->save($imagePath);
+                                return $path;
+                            }),
                     ])
             ]);
     }
@@ -70,12 +77,15 @@ class AcompanhanteResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('imagem_principal_url')->label('Foto')->circular(),
                 Tables\Columns\TextColumn::make('nome_artistico')->searchable(),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'pendente' => 'warning', 'aprovado' => 'success', 'rejeitado' => 'danger',
+                }),
                 Tables\Columns\IconColumn::make('is_verified')->label('Verificado')->boolean(),
                 Tables\Columns\IconColumn::make('is_featured')->label('Destaque')->boolean(),
                 Tables\Columns\TextColumn::make('cidade')->searchable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')->options(['pendente' => 'Pendente', 'aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado'])
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -96,7 +106,7 @@ class AcompanhanteResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\MidiasRelationManager::class,
         ];
     }
 

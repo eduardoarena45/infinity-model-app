@@ -2,31 +2,23 @@
 @section('title', 'Bem-vindo(a) - Encontre a melhor companhia')
 
 @section('content')
-<div class="relative bg-gray-800 text-white overflow-hidden">
-    <div class="max-w-7xl mx-auto">
-        <div class="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
-            <main class="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-                <div class="sm:text-center lg:text-left">
-                    <h1 class="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-                        <span class="block xl:inline">Encontre a companhia</span>
-                        <span class="block text-pink-500 xl:inline">perfeita para si.</span>
-                    </h1>
-                    <p class="mt-3 text-base text-gray-300 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                        Explore perfis verificados nas principais cidades. A sua melhor experiência começa aqui.
-                    </p>
-                </div>
-            </main>
-        </div>
+<div class="relative bg-gray-900">
+    <div aria-hidden="true" class="absolute inset-0 overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="[Imagem de fundo abstrata]" class="w-full h-full object-center object-cover">
     </div>
-    <div class="lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-        <img class="h-56 w-full object-cover sm:h-72 md:h-96 lg:w-full lg:h-full" src="https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="[Imagem de uma cidade à noite]">
+    <div aria-hidden="true" class="absolute inset-0 bg-gray-900 opacity-50"></div>
+
+    <div class="relative max-w-3xl mx-auto py-32 px-6 flex flex-col items-center text-center sm:py-48 lg:px-0">
+        <h1 class="text-4xl font-extrabold tracking-tight text-white lg:text-6xl">A sua melhor experiência</h1>
+        <p class="mt-4 text-xl text-white">Explore perfis verificados nas principais cidades e encontre a companhia perfeita para qualquer ocasião.</p>
+        <a href="#vitrines" class="mt-8 inline-block bg-white border border-transparent rounded-md py-3 px-8 text-base font-medium text-gray-900 hover:bg-gray-100">Ver Vitrines</a>
     </div>
 </div>
 
-<div class="py-12 bg-white dark:bg-gray-800">
+<div id="vitrines" class="py-16 bg-white dark:bg-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-extrabold text-center text-gray-900 dark:text-white">Selecione uma Vitrine</h2>
-        <div id="city-list" class="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div class="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             @forelse ($cidades as $cidade)
                 <a href="{{ route('vitrine.por.cidade', ['cidade' => $cidade->cidade]) }}" class="city-item block text-center p-6 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-md hover:bg-pink-100 dark:hover:bg-pink-900 transition-colors">
                     <h3 class="font-bold text-lg text-gray-900 dark:text-white">{{ $cidade->cidade }}</h3>
