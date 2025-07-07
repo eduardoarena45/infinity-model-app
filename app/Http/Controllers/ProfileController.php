@@ -90,18 +90,39 @@ class ProfileController extends Controller
     {
         $request->validate(['midias.*' => 'required|file|mimes:jpg,jpeg,png,gif,mp4,mov,wmv,avi|max:10240']);
         $perfil = $request->user()->acompanhante;
+        $assinatura = $request->user()->assinatura;
+
+        // Verifica se o utilizador tem uma assinatura e um plano
+        if (!$assinatura || !$assinatura->plano) {
+            return back()->withErrors(['limite' => 'Você não tem um plano de assinatura ativo.']);
+        }
+
+        $plano = $assinatura->plano;
+
+        // Conta quantas fotos e vídeos já existem
+        $fotosCount = $perfil->midias()->where('tipo', 'foto')->count();
+        $videosCount = $perfil->midias()->where('tipo', 'video')->count();
 
         if ($request->hasFile('midias')) {
             foreach ($request->file('midias') as $ficheiro) {
-                $path = $ficheiro->store('galerias', 'public');
                 $tipo = Str::startsWith($ficheiro->getMimeType(), 'image') ? 'foto' : 'video';
-                
-                // Guarda a nova mídia com o status 'pendente'
+
+                // Verifica os limites do plano
+                if ($tipo === 'foto' && $fotosCount >= $plano->limite_fotos) {
+                    return back()->withErrors(['limite' => "Limite de {$plano->limite_fotos} fotos atingido para o seu plano."]);
+                }
+                if ($tipo === 'video' && $videosCount >= $plano->limite_videos) {
+                    return back()->withErrors(['limite' => "Limite de {$plano->limite_videos} vídeos atingido para o seu plano."]);
+                }
+
+                $path = $ficheiro->store('galerias', 'public');
                 $perfil->midias()->create([
                     'caminho_arquivo' => $path,
                     'tipo' => $tipo,
                     'status' => 'pendente',
                 ]);
+
+                if ($tipo === 'foto') $fotosCount++; else $videosCount++;
             }
             // Também definimos o perfil principal como pendente para forçar uma revisão
             $perfil->update(['status' => 'pendente']);

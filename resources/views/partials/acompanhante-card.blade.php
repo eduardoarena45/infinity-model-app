@@ -1,6 +1,6 @@
 @php use Illuminate\Support\Facades\Storage; @endphp
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-300
-    @if($isDestaque) border-2 border-pink-500 @endif">
+    @if($isDestaque) border-2 border-[--color-accent] @endif">
     <a href="{{ route('vitrine.show', $perfil->id) }}" class="block">
         <div class="relative">
             <img src="{{ $perfil->foto_principal_url_completa }}" alt="Foto de {{ $perfil->nome_artistico }}" class="w-full h-80 object-cover">
@@ -13,7 +13,7 @@
             @endif
         </div>
         <div class="p-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white truncate">{{ $perfil->nome_artistico }}</h3>
+            <h3 class="text-lg font-semibold text-[--color-primary] dark:text-white truncate">{{ $perfil->nome_artistico }}</h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">{{ $perfil->cidade }}</p>
             <div class="flex items-center mt-2">
                 @for ($i = 1; $i <= 5; $i++)
@@ -21,7 +21,7 @@
                 @endfor
                 <span class="ml-1 text-xs text-gray-400">({{ $perfil->avaliacoes->count() }})</span>
             </div>
-            <p class="text-lg font-bold text-pink-600 dark:text-pink-400 mt-4">R$ {{ number_format($perfil->valor_hora, 2, ',', '.') }} / hora</p>
+            <p class="text-lg font-bold text-[--color-accent] dark:text-[--color-accent] mt-4">R$ {{ number_format($perfil->valor_hora, 2, ',', '.') }} / hora</p>
         </div>
     </a>
 </div>

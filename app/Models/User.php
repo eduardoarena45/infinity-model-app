@@ -14,19 +14,16 @@ class User extends Authenticatable
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'is_admin', // Mantém o campo de admin
     ];
 
     /**
      * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -35,22 +32,29 @@ class User extends Authenticatable
 
     /**
      * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean', // Mantém o cast de admin
         ];
     }
 
     /**
-     * Define a relação: um User tem um perfil de Acompanhante.
+     * Relação: um User tem um perfil de Acompanhante.
      */
     public function acompanhante(): HasOne
     {
         return $this->hasOne(Acompanhante::class);
+    }
+
+    /**
+     * NOVA RELAÇÃO: um User tem uma Assinatura.
+     */
+    public function assinatura(): HasOne
+    {
+        return $this->hasOne(Assinatura::class);
     }
 }
