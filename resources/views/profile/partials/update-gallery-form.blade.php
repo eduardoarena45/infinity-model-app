@@ -25,39 +25,46 @@
         @endif
     </header>
 
-    {{-- Exibe uma mensagem de erro se a utilizadora atingir o limite do plano --}}
+    {{-- EXIBIÇÃO DE ERROS DE LIMITE --}}
     @if($errors->has('limite'))
         <div class="mt-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
             {{ $errors->first('limite') }}
         </div>
     @endif
 
-    {{-- Grelha que exibe as mídias existentes (fotos e vídeos) --}}
-    <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-        @foreach($perfil->midias as $midia)
-            <div class="relative group">
-                @if($midia->tipo === 'video')
-                    <video class="rounded-lg object-cover w-full h-40" controls>
-                        <source src="{{ Storage::url($midia->caminho_arquivo) }}" type="video/mp4">
-                    </video>
-                @else
-                    <img src="{{ Storage::url($midia->caminho_arquivo) }}" class="rounded-lg object-cover w-full h-40" alt="Foto da galeria">
-                @endif
+    {{-- GRELHA QUE EXIBE AS MÍDIAS EXISTENTES --}}
+    <div class="mt-6">
+        @if($perfil->midias->isNotEmpty())
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                @foreach($perfil->midias as $midia)
+                    {{-- CORREÇÃO: Garante que o div pai tem as classes 'relative' e 'group' --}}
+                    <div class="relative group">
+                        @if($midia->tipo === 'video')
+                            <video class="rounded-lg object-cover w-full h-40 bg-black" controls>
+                                <source src="{{ Storage::url($midia->caminho_arquivo) }}" type="video/mp4">
+                            </video>
+                        @else
+                            <img src="{{ Storage::url($midia->caminho_arquivo) }}" class="rounded-lg object-cover w-full h-40" alt="Foto da galeria">
+                        @endif
 
-                {{-- Formulário com o botão de apagar para cada mídia --}}
-                <form method="POST" action="{{ route('galeria.destroy', $midia) }}" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    @csrf
-                    @method('delete')
-                    <button type="submit" class="p-1.5 bg-red-600 text-white rounded-full leading-none" onclick="return confirm('Tem a certeza que quer apagar esta mídia?')">
-                        &times;
-                    </button>
-                </form>
+                        {{-- Este formulário agora irá aparecer corretamente no hover --}}
+                        <form method="POST" action="{{ route('galeria.destroy', $midia) }}" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            @csrf
+                            @method('delete')
+                            <button type="submit" class="p-1.5 bg-red-600 text-white rounded-full leading-none" onclick="return confirm('Tem a certeza que quer apagar esta mídia?')">
+                                &times;
+                            </button>
+                        </form>
+                    </div>
+                @endforeach
             </div>
-        @endforeach
+        @else
+            <p class="mt-4 text-sm text-gray-500">A sua galeria está vazia.</p>
+        @endif
     </div>
 
-    {{-- Formulário para enviar novas mídias --}}
-    <form method="POST" action="{{ route('galeria.upload') }}" enctype="multipart/form-data" class="mt-6">
+    {{-- FORMULÁRIO PARA ENVIAR NOVAS MÍDIAS --}}
+    <form method="POST" action="{{ route('galeria.upload') }}" enctype="multipart/form-data" class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
         @csrf
         <div>
             <x-input-label for="midias" value="Adicionar Novas Fotos ou Vídeos" />
@@ -68,7 +75,7 @@
         <div class="flex items-center gap-4 mt-4">
             <x-primary-button>{{ __('Enviar Mídia') }}</x-primary-button>
             @if (session('status') === 'galeria-atualizada')
-                <p class="text-sm text-gray-600 dark:text-gray-400">Enviado com sucesso! A sua mídia está pendente de aprovação.</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Enviado! A sua mídia está pendente de aprovação.</p>
             @endif
         </div>
     </form>

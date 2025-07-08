@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Local;
 use App\Models\Midia;
 use App\Models\Servico;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
@@ -21,13 +23,16 @@ class ProfileController extends Controller
         $perfil = $request->user()->acompanhante()->firstOrCreate([]);
         // Carrega as relações para usar na view
         $perfil->load('midias', 'servicos');
-        // Pega todos os serviços disponíveis para os checkboxes
+        // Pega todos os serviços disponíveis
         $servicosDisponiveis = Servico::orderBy('nome')->get();
+        // Busca os estados distintos da nossa tabela de locais
+        $estados = Local::select('estado')->distinct()->orderBy('estado')->get();
 
         return view('profile.edit-acompanhante', [
             'user' => $request->user(),
             'perfil' => $perfil,
             'servicosDisponiveis' => $servicosDisponiveis,
+            'estados' => $estados, // Envia os nossos estados para a view
         ]);
     }
 
@@ -50,37 +55,29 @@ class ProfileController extends Controller
             'imagem_principal_url' => ['nullable', 'image', 'max:2048'],
         ]);
 
-        // Lida com o upload da foto principal
         if ($request->hasFile('imagem_principal_url')) {
-            // Apaga a foto antiga, se existir
             if ($perfil->imagem_principal_url) {
                 Storage::disk('public')->delete($perfil->imagem_principal_url);
             }
-            // Guarda a nova foto
             $path = $request->file('imagem_principal_url')->store('perfis', 'public');
-
-            // Aplica a marca d'água
-            $manager = new ImageManager(new Driver());
-            $imagePath = Storage::disk('public')->path($path);
-            $image = $manager->read($imagePath);
-            $logoPath = public_path('images/logo-watermark.png');
-            if (file_exists($logoPath)) {
-                $image->place($logoPath, 'bottom-right', 10, 10, 70);
-            }
-            $image->save($imagePath);
-
             $validatedData['imagem_principal_url'] = $path;
-            // Se a foto principal for alterada, o perfil volta a ficar pendente
             $validatedData['status'] = 'pendente';
         }
 
-        // Atualiza os dados do perfil
         $perfil->update($validatedData);
-
-        // Sincroniza os serviços selecionados
         $perfil->servicos()->sync($request->input('servicos', []));
 
         return redirect()->route('profile.edit')->with('status', 'perfil-publico-atualizado');
+    }
+
+    /**
+     * Mostra a página para gerir a galeria de mídia.
+     */
+    public function gerirGaleria(Request $request)
+    {
+        $perfil = $request->user()->acompanhante()->firstOrCreate([]);
+        $perfil->load('midias');
+        return view('profile.gerir-galeria', ['perfil' => $perfil]);
     }
 
     /**
@@ -92,14 +89,11 @@ class ProfileController extends Controller
         $perfil = $request->user()->acompanhante;
         $assinatura = $request->user()->assinatura;
 
-        // Verifica se o utilizador tem uma assinatura e um plano
         if (!$assinatura || !$assinatura->plano) {
             return back()->withErrors(['limite' => 'Você não tem um plano de assinatura ativo.']);
         }
 
         $plano = $assinatura->plano;
-
-        // Conta quantas fotos e vídeos já existem
         $fotosCount = $perfil->midias()->where('tipo', 'foto')->count();
         $videosCount = $perfil->midias()->where('tipo', 'video')->count();
 
@@ -107,7 +101,6 @@ class ProfileController extends Controller
             foreach ($request->file('midias') as $ficheiro) {
                 $tipo = Str::startsWith($ficheiro->getMimeType(), 'image') ? 'foto' : 'video';
 
-                // Verifica os limites do plano
                 if ($tipo === 'foto' && $fotosCount >= $plano->limite_fotos) {
                     return back()->withErrors(['limite' => "Limite de {$plano->limite_fotos} fotos atingido para o seu plano."]);
                 }
@@ -116,18 +109,13 @@ class ProfileController extends Controller
                 }
 
                 $path = $ficheiro->store('galerias', 'public');
-                $perfil->midias()->create([
-                    'caminho_arquivo' => $path,
-                    'tipo' => $tipo,
-                    'status' => 'pendente',
-                ]);
+                $perfil->midias()->create(['caminho_arquivo' => $path, 'tipo' => $tipo, 'status' => 'pendente']);
 
                 if ($tipo === 'foto') $fotosCount++; else $videosCount++;
             }
-            // Também definimos o perfil principal como pendente para forçar uma revisão
             $perfil->update(['status' => 'pendente']);
         }
-        return redirect()->route('profile.edit')->with('status', 'galeria-atualizada');
+        return redirect()->route('galeria.gerir')->with('status', 'galeria-atualizada');
     }
 
     /**
@@ -135,12 +123,11 @@ class ProfileController extends Controller
      */
     public function destroyMidia(Midia $midia)
     {
-        // Garante que a utilizadora só pode apagar as próprias fotos
         if ($midia->acompanhante->user_id !== Auth::id()) {
             abort(403);
         }
         Storage::disk('public')->delete($midia->caminho_arquivo);
         $midia->delete();
-        return redirect()->route('profile.edit')->with('status', 'foto-removida');
+        return redirect()->route('galeria.gerir')->with('status', 'foto-removida');
     }
 }
