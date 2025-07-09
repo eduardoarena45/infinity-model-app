@@ -17,10 +17,13 @@ class RegisteredUserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        // VALIDAÇÃO ATUALIZADA
         $request->validate([
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'terms' => ['required', 'accepted'], // Garante que a checkbox foi marcada
         ]);
+
         $user = User::create([
             'name' => Str::before($request->email, '@'),
             'email' => $request->email,
@@ -30,7 +33,6 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        // REDIRECIONAMENTO ATUALIZADO: Agora vai para a página de seleção de planos
         return redirect(route('planos.selecionar'));
     }
 }

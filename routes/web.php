@@ -18,6 +18,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- ROTAS PÚBLICAS (PARA VISITANTES) ---
+Route::get('/', [VitrineController::class, 'listarCidades'])->name('cidades.index');
+
+// NOVAS ROTAS LEGAIS
+Route::get('/termos-de-servico', function () {
+    return view('legal.termos');
+})->name('termos');
+
+Route::get('/politica-de-privacidade', function () {
+    return view('legal.privacidade');
+})->name('privacidade');
 
 // Rota principal que mostra a página de seleção de cidades
 Route::get('/', [VitrineController::class, 'listarCidades'])->name('cidades.index');

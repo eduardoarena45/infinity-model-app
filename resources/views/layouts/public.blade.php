@@ -22,6 +22,25 @@
         </style>
     </head>
     <body class="bg-gray-100 dark:bg-gray-900 text-[--color-neutral] dark:text-gray-300">
+        <!-- INÍCIO DO AVISO DE IDADE -->
+    <div id="age-gate-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl text-center max-w-sm mx-4">
+            <h2 class="text-2xl font-bold text-[--color-primary] mb-4">Confirmação de Idade</h2>
+            <p class="text-gray-700 dark:text-gray-300 mb-6">Este site contém conteúdo adulto. Você deve ter 18 anos ou mais para entrar. Por favor, confirme a sua idade.</p>
+            <div class="space-y-4">
+                <button id="confirm-age-btn" class="w-full bg-[--color-primary] text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity">
+                    Tenho 18 anos ou mais - Entrar
+                </button>
+                <a href="https://www.google.com" class="w-full block bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity">
+                    Tenho menos de 18 anos - Sair
+                </a>
+            </div>
+        </div>
+    </div>
+    <!-- FIM DO AVISO DE IDADE -->
+     <nav class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
+        {{-- ... o seu menu de navegação ... --}}
+    </nav>
         <nav class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
@@ -60,7 +79,11 @@
 
         <footer class="bg-white dark:bg-gray-800 mt-16">
             <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                <div class="text-center">
+                <div class="flex justify-center space-x-6">
+                    <a href="{{ route('termos') }}" class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white">Termos de Serviço</a>
+                    <a href="{{ route('privacidade') }}" class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white">Política de Privacidade</a>
+                </div>
+                <div class="mt-8 text-center">
                     <p class="text-center text-base text-gray-400">&copy; {{ date('Y') }} Infinity Model. Todos os direitos reservados.</p>
                 </div>
             </div>
@@ -70,5 +93,30 @@
         <script>
             Fancybox.bind("[data-fancybox]", { /* ... */ });
         </script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('age-gate-overlay');
+            const confirmBtn = document.getElementById('confirm-age-btn');
+            const ageVerified = sessionStorage.getItem('ageVerified');
+
+            // Se o utilizador já verificou a idade nesta sessão, esconde o pop-up
+            if (ageVerified === 'true') {
+                overlay.style.display = 'none';
+            }
+
+            // Quando o botão de confirmação é clicado
+            confirmBtn.addEventListener('click', function() {
+                // Esconde o pop-up com uma transição suave
+                overlay.style.transition = 'opacity 0.5s ease';
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 500);
+
+                // Guarda a verificação na sessão do navegador
+                sessionStorage.setItem('ageVerified', 'true');
+            });
+        });
+    </script>
     </body>
 </html>
