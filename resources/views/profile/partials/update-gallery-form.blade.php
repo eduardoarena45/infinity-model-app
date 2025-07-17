@@ -1,82 +1,70 @@
 <section>
     <header>
         <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-            A Minha Galeria de Mídia
+            Minhas Fotos
         </h2>
-
-        {{-- MOSTRA OS LIMITES DO PLANO ATUAL DA UTILIZADORA --}}
-        @if(Auth::user()->assinatura && Auth::user()->assinatura->plano)
-            @php
-                $plano = Auth::user()->assinatura->plano;
-                $fotosAtuais = $perfil->midias()->where('tipo', 'foto')->count();
-                $videosAtuais = $perfil->midias()->where('tipo', 'video')->count();
-            @endphp
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Seu plano: <span class="font-semibold">{{ $plano->nome }}</span>.
-                <br>
-                Fotos enviadas: {{ $fotosAtuais }} de {{ $plano->limite_fotos }}.
-                <br>
-                Vídeos enviados: {{ $videosAtuais }} de {{ $plano->limite_videos }}.
-            </p>
-        @else
-             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                Você não possui um plano de assinatura ativo.
-            </p>
-        @endif
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Adicione ou remova fotos da sua galeria. As fotos novas precisarão de aprovação antes de aparecerem no seu perfil público.
+        </p>
     </header>
 
-    {{-- EXIBIÇÃO DE ERROS DE LIMITE --}}
-    @if($errors->has('limite'))
-        <div class="mt-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-            {{ $errors->first('limite') }}
+    {{-- Mostra uma mensagem de erro, se houver --}}
+    @if(session('error_message'))
+        <div class="p-4 my-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+            {{ session('error_message') }}
         </div>
     @endif
+    
+    {{-- Condição para mostrar o formulário ou a mensagem de limite --}}
+    @if ($photo_count < $photo_limit)
 
-    {{-- GRELHA QUE EXIBE AS MÍDIAS EXISTENTES --}}
-    <div class="mt-6">
-        @if($perfil->midias->isNotEmpty())
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                @foreach($perfil->midias as $midia)
-                    {{-- CORREÇÃO: Garante que o div pai tem as classes 'relative' e 'group' --}}
+        <form method="post" action="{{ route('galeria.upload') }}" enctype="multipart/form-data" class="mt-6 space-y-6">
+            @csrf
+            <div>
+                <x-input-label for="fotos" :value="'Adicionar Novas Fotos (' . $photo_count . ' de ' . $photo_limit . ')'" />
+                <input id="fotos" name="fotos[]" type="file" class="mt-1 block w-full text-gray-900 dark:text-gray-100" multiple required />
+                <x-input-error class="mt-2" :messages="$errors->get('fotos')" />
+            </div>
+            <div class="flex items-center gap-4">
+                <x-primary-button>{{ __('Enviar') }}</x-primary-button>
+                @if (session('status') === 'gallery-updated')
+                    <p x-data="{ show: true }" x-show="show" x-transition x-init="setTimeout(() => show = false, 3000)" class="text-sm text-gray-600 dark:text-gray-400">{{ session('success_message') }}</p>
+                @endif
+            </div>
+        </form>
+
+    @else
+
+        <div class="p-4 mt-6 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300" role="alert">
+            <span class="font-medium">Limite de fotos atingido!</span> Você já tem {{ $photo_count }} de {{ $photo_limit }} fotos permitidas. Para adicionar mais, futuramente você poderá fazer um upgrade de plano.
+        </div>
+
+    @endif
+
+    <hr class="my-8 border-gray-200 dark:border-gray-700">
+
+    <div>
+        <h3 class="text-md font-medium text-gray-900 dark:text-gray-100">Fotos Atuais</h3>
+        @if($media && $media->count() > 0)
+            <div class="mt-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                @foreach($media as $foto)
                     <div class="relative group">
-                        @if($midia->tipo === 'video')
-                            <video class="rounded-lg object-cover w-full h-40 bg-black" controls>
-                                <source src="{{ Storage::url($midia->caminho_arquivo) }}" type="video/mp4">
-                            </video>
-                        @else
-                            <img src="{{ Storage::url($midia->caminho_arquivo) }}" class="rounded-lg object-cover w-full h-40" alt="Foto da galeria">
-                        @endif
-
-                        {{-- Este formulário agora irá aparecer corretamente no hover --}}
-                        <form method="POST" action="{{ route('galeria.destroy', $midia) }}" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            @csrf
-                            @method('delete')
-                            <button type="submit" class="p-1.5 bg-red-600 text-white rounded-full leading-none" onclick="return confirm('Tem a certeza que quer apagar esta mídia?')">
-                                &times;
-                            </button>
-                        </form>
+                        <img src="{{ asset('storage/' . $foto->path) }}" class="rounded-lg object-cover w-full h-40" alt="Foto da galeria">
+                        <div class="absolute inset-0 bg-black bg-opacity-20 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                             <span class="text-white text-xs font-bold capitalize bg-black bg-opacity-50 px-2 py-1 rounded mb-1">{{ $foto->status }}</span>
+                             <form method="POST" action="{{ route('galeria.destroy', $foto->id) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-600 text-white rounded-full p-1 leading-none" onclick="return confirm('Tem certeza que deseja apagar esta foto?')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 @endforeach
             </div>
         @else
-            <p class="mt-4 text-sm text-gray-500">A sua galeria está vazia.</p>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Você ainda não possui fotos na sua galeria.</p>
         @endif
     </div>
-
-    {{-- FORMULÁRIO PARA ENVIAR NOVAS MÍDIAS --}}
-    <form method="POST" action="{{ route('galeria.upload') }}" enctype="multipart/form-data" class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
-        @csrf
-        <div>
-            <x-input-label for="midias" value="Adicionar Novas Fotos ou Vídeos" />
-            <x-text-input id="midias" name="midias[]" type="file" class="mt-1 block w-full" multiple accept="image/*,video/*"/>
-            <x-input-error class="mt-2" :messages="$errors->get('midias.*')" />
-        </div>
-
-        <div class="flex items-center gap-4 mt-4">
-            <x-primary-button>{{ __('Enviar Mídia') }}</x-primary-button>
-            @if (session('status') === 'galeria-atualizada')
-                <p class="text-sm text-gray-600 dark:text-gray-400">Enviado! A sua mídia está pendente de aprovação.</p>
-            @endif
-        </div>
-    </form>
 </section>

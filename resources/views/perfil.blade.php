@@ -3,114 +3,88 @@
 @section('title', "Perfil de {$acompanhante->nome_artistico}")
 
 @section('content')
-    @php use Illuminate\Support\Facades\Storage; @endphp
-    <div class="container mx-auto p-4 md:p-8">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl mx-auto overflow-hidden">
-            <div class="md:flex">
-                <div class="md:w-1/3">
-                    {{-- A foto principal também pode abrir no lightbox --}}
-                    <a href="{{ $acompanhante->foto_principal_url_completa }}" data-fancybox="profile" data-caption="{{ $acompanhante->nome_artistico }}">
-                        <img src="{{ $acompanhante->foto_principal_url_completa }}" alt="Foto de {{ $acompanhante->nome_artistico }}" class="w-full h-full object-cover">
+
+<div class="bg-gray-100 dark:bg-gray-900 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+
+            <!-- CABEÇALHO DO PERFIL -->
+            <div class="relative">
+                <div class="h-48 bg-gray-200 dark:bg-gray-700 bg-cover bg-center" style="background-image: url('{{ $acompanhante->foto_principal_url }}');">
+                    <div class="h-full w-full bg-black bg-opacity-50 backdrop-blur-md"></div>
+                </div>
+                <div class="absolute top-24 left-1/2 -translate-x-1/2 md:left-12 md:-translate-x-0">
+                    <a href="{{ $acompanhante->foto_principal_url }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
+                        <img src="{{ $acompanhante->foto_principal_url }}" alt="Foto de {{ $acompanhante->nome_artistico }}" class="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg">
                     </a>
                 </div>
-                <div class="p-8 md:w-2/3">
-                    <h1 class="text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-x-2">
+            </div>
+
+            <!-- INFORMAÇÕES PRINCIPAIS E BOTÃO DE CONTATO -->
+            <div class="pt-20 md:pt-8 pb-8 px-8">
+                <div class="text-center md:text-left md:ml-48">
+                    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-x-2">
                         <span>{{ $acompanhante->nome_artistico }}</span>
                         @if($acompanhante->is_verified)
-                            <span title="Perfil Verificado"><svg class="w-6 h-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a.75.75 0 00-1.06-1.06L9 10.94l-1.72-1.72a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.06 0l3.75-3.75z" clip-rule="evenodd" /></svg></span>
+                            <span title="Perfil Verificado"><svg class="w-7 h-7 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a.75.75 0 00-1.06-1.06L9 10.94l-1.72-1.72a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.06 0l3.75-3.75z" clip-rule="evenodd" /></svg></span>
                         @endif
                     </h1>
-                    <div class="flex items-center mt-2">
-                        @for ($i = 1; $i <= 5; $i++)
-                            <svg class="w-5 h-5 {{ $i <= $acompanhante->nota_media ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                        @endfor
-                        <span class="ml-2 text-sm text-gray-500">{{ $acompanhante->nota_media }} de 5 ({{ $acompanhante->avaliacoes->count() }} avaliações)</span>
+                    <p class="text-gray-500 dark:text-gray-400 text-lg mt-1">{{ $acompanhante->cidade->nome ?? 'Cidade não informada' }}, {{ $acompanhante->idade }} anos</p>
+                </div>
+                <div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="text-center">
+                        <span class="text-gray-500 dark:text-gray-400">Valor</span>
+                        <p class="text-3xl font-bold text-green-600 dark:text-green-400">R$ {{ number_format($acompanhante->valor_hora, 2, ',', '.') }} / hora</p>
                     </div>
-                    <p class="text-gray-600 dark:text-gray-400 text-lg mt-1">{{ $acompanhante->cidade }}, {{ $acompanhante->estado }} - {{ $acompanhante->idade }} anos</p>
-                    <p class="text-gray-700 dark:text-gray-300 mt-6">{{ $acompanhante->descricao_curta }}</p>
-
-                    @if($acompanhante->servicos->isNotEmpty())
-                        <div class="mt-8">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Serviços</h3>
-                            <div class="flex flex-wrap gap-2">
-                                @foreach($acompanhante->servicos as $servico)
-                                    <span class="inline-block bg-pink-100 text-pink-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-pink-900 dark:text-pink-300">{{ $servico->nome }}</span>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
-
-                    <div class="mt-8"><span class="text-gray-500">Valor:</span> <span class="text-3xl font-bold text-pink-600">R$ {{ number_format($acompanhante->valor_hora, 2, ',', '.') }} / hora</span></div>
-                    <a href="https://wa.me/55{{ $acompanhante->whatsapp }}" target="_blank" class="mt-8 inline-block w-full text-center bg-green-500 text-white font-bold py-4 px-6 rounded-lg text-lg hover:bg-green-600 transition-colors">Entrar em Contato por WhatsApp</a>
-
-                    <div class="mt-10">
-                        <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b pb-2">Galeria</h3>
-                        @php $midiasAprovadas = $acompanhante->midias->where('status', 'aprovado'); @endphp
-                        @if($midiasAprovadas->isNotEmpty())
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                @foreach($midiasAprovadas as $midia)
-                                    @if($midia->tipo === 'video')
-                                        <div class="rounded-lg overflow-hidden">
-                                            <video class="w-full h-48 object-cover" controls><source src="{{ Storage::url($midia->caminho_arquivo) }}" type="video/mp4"></video>
-                                        </div>
-                                    @else
-                                        <a href="{{ Storage::url($midia->caminho_arquivo) }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
-                                            <img src="{{ Storage::url($midia->caminho_arquivo) }}" class="rounded-lg object-cover w-full h-48 hover:opacity-80 transition-opacity" alt="Foto da galeria">
-                                        </a>
-                                    @endif
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="text-gray-500">Nenhuma foto ou vídeo na galeria ainda.</p>
-                        @endif
-                    </div>
-
-                    <div class="mt-10 border-t pt-8">
-                        <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-6">Deixe a sua Avaliação</h3>
-                        @if(session('success'))
-                            <div class="mb-4 p-4 text-sm text-green-700 bg-green-100 rounded-lg" role="alert">{{ session('success') }}</div>
-                        @endif
-                        <form action="{{ route('avaliacoes.store', $acompanhante) }}" method="POST" class="space-y-4">
-                            @csrf
-                            <div>
-                                <label for="nome_autor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Seu Nome</label>
-                                <input type="text" name="nome_autor" id="nome_autor" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-900 dark:border-gray-600">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sua Nota</label>
-                                <div class="flex items-center mt-1">
-                                    @for ($i = 1; $i <= 5; $i++)
-                                        <label class="mr-4"><input type="radio" name="nota" value="{{ $i }}" class="sr-only peer" required><svg class="w-8 h-8 cursor-pointer text-gray-300 peer-checked:text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg></label>
-                                    @endfor
-                                </div>
-                            </div>
-                            <div>
-                                <label for="comentario" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Seu Comentário (opcional)</label>
-                                <textarea name="comentario" id="comentario" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-900 dark:border-gray-600"></textarea>
-                            </div>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-pink-600 hover:bg-pink-700">Enviar Avaliação</button>
-                        </form>
-                        <div class="mt-12 space-y-6">
-                            <h4 class="text-xl font-bold text-gray-800 dark:text-white">O que outros dizem</h4>
-                            @forelse($acompanhante->avaliacoes as $avaliacao)
-                                <div class="border-t pt-4">
-                                    <div class="flex items-center mb-1">
-                                        @for ($i = 1; $i <= 5; $i++)
-                                            <svg class="w-4 h-4 {{ $i <= $avaliacao->nota ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                                        @endfor
-                                    </div>
-                                    <p class="text-gray-600 dark:text-gray-400 italic">"{{ $avaliacao->comentario }}"</p>
-                                    <p class="text-right text-sm text-gray-500 mt-2">- {{ $avaliacao->nome_autor }}, {{ $avaliacao->created_at->diffForHumans() }}</p>
-                                </div>
-                            @empty
-                                <p class="text-gray-500">Este perfil ainda não tem avaliações. Seja o primeiro a deixar uma!</p>
-                            @endforelse
-                        </div>
-                    </div>
-
-                    <a href="{{ route('cidades.index') }}" class="mt-8 block text-center text-gray-600 hover:text-gray-800">&larr; Voltar à seleção de cidades</a>
+                    <a href="https://wa.me/55{{ preg_replace('/\D/', '', $acompanhante->whatsapp) }}" target="_blank" class="w-full md:w-auto flex items-center justify-center bg-green-500 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-green-600 transition-colors shadow-lg">
+                        <svg class="w-6 h-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+                        <span>Contato por WhatsApp</span>
+                    </a>
                 </div>
             </div>
+
+            <div class="p-8 space-y-12">
+                <!-- Seção Sobre -->
+                <section>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Sobre mim</h3>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{{ $acompanhante->descricao }}</p>
+                </section>
+
+                <!-- Seção Serviços -->
+                @if($acompanhante->servicos->isNotEmpty())
+                <section>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Serviços</h3>
+                    <div class="flex flex-wrap gap-3">
+                        @foreach($acompanhante->servicos as $servico)
+                            <span class="inline-block bg-pink-100 text-pink-800 text-sm font-medium px-3 py-1 rounded-full dark:bg-pink-900 dark:text-pink-300">{{ $servico->nome }}</span>
+                        @endforeach
+                    </div>
+                </section>
+                @endif
+
+                <!-- Seção Galeria -->
+                <section>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Galeria</h3>
+                    @if($acompanhante->midias->where('status', 'aprovado')->isNotEmpty())
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                            @foreach($acompanhante->midias->where('status', 'aprovado') as $midia)
+                                <a href="{{ Storage::url($midia->path) }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
+                                    <img src="{{ Storage::url($midia->path) }}" class="rounded-lg object-cover w-full h-48 hover:opacity-80 transition-opacity shadow-md" alt="Foto da galeria">
+                                </a>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-gray-500 text-center">Nenhuma foto na galeria ainda.</p>
+                    @endif
+                </section>
+
+                <!-- Seção Avaliações -->
+                {{-- ... seu código de avaliações ... --}}
+            </div>
+        </div>
+        <div class="text-center mt-8">
+            <a href="{{ url()->previous() }}" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">&larr; Voltar</a>
         </div>
     </div>
+</div>
 @endsection

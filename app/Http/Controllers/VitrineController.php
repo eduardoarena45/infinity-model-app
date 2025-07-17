@@ -4,28 +4,36 @@ namespace App\Http\Controllers;
 
 use App\Models\Acompanhante;
 use App\Models\Servico;
+use App\Models\Cidade; // Usa o Model Cidade
 use Illuminate\Http\Request;
 
 class VitrineController extends Controller
 {
+    /**
+     * Lista as cidades que têm perfis aprovados para a página inicial.
+     */
     public function listarCidades()
     {
-        // Agora só conta cidades que têm perfis APROVADOS
-        $cidades = Acompanhante::where('status', 'aprovado')
-                                ->select('cidade')
-                                ->whereNotNull('cidade')
-                                ->distinct()
-                                ->orderBy('cidade', 'asc')
-                                ->get();
+        // LÓGICA CORRIGIDA: Busca Cidades que têm uma relação 'acompanhantes'
+        // onde pelo menos um acompanhante tem o status 'aprovado'.
+        $cidades = Cidade::whereHas('acompanhantes', function ($query) {
+            $query->where('status', 'aprovado');
+        })->orderBy('nome')->get();
+
         return view('cidades', ['cidades' => $cidades]);
     }
 
-    public function mostrarPorCidade(Request $request, string $cidade)
+    /**
+     * Mostra a vitrine de uma cidade específica.
+     */
+    public function mostrarPorCidade(Request $request, string $cidadeNome)
     {
-        // A query base agora já inclui o filtro por status aprovado
+        // LÓGICA CORRIGIDA: A query agora busca pela relação com a cidade
         $baseQuery = Acompanhante::query()
-                                ->where('cidade', $cidade)
-                                ->where('status', 'aprovado');
+            ->whereHas('cidade', function ($query) use ($cidadeNome) {
+                $query->where('nome', $cidadeNome);
+            })
+            ->where('status', 'aprovado');
 
         if ($request->filled('servicos')) {
             $servicosSelecionados = $request->servicos;
@@ -34,29 +42,49 @@ class VitrineController extends Controller
             });
         }
 
-        // A lógica de destaques e normais continua, mas já sobre os perfis aprovados
+        // Ordena para que os perfis em destaque apareçam primeiro
         $destaques = (clone $baseQuery)->where('is_featured', true)->latest()->get();
         $acompanhantesNormais = (clone $baseQuery)->where('is_featured', false)->latest()->paginate(12)->withQueryString();
+        
         $servicos = Servico::orderBy('nome')->get();
 
         return view('vitrine', [
             'destaques' => $destaques,
             'acompanhantes' => $acompanhantesNormais,
-            'cidadeNome' => $cidade,
+            'cidadeNome' => $cidadeNome,
             'servicos' => $servicos,
             'servicosSelecionados' => $request->input('servicos', []),
         ]);
     }
 
+    /**
+     * Mostra o perfil detalhado de uma acompanhante.
+     */
     public function show(Acompanhante $acompanhante)
     {
-        // Garante que ninguém possa aceder a um perfil não aprovado pela URL
         if ($acompanhante->status !== 'aprovado') {
-            abort(404); // Mostra uma página de "Não Encontrado"
+            abort(404);
         }
-        $acompanhante->load('servicos', 'midias', 'avaliacoes');
+        $acompanhante->load('servicos', 'midias', 'avaliacoes.user');
         return view('perfil', ['acompanhante' => $acompanhante]);
     }
 
-    // ... (resto dos métodos: storeAvaliacao)
+    /**
+     * Salva uma nova avaliação para uma acompanhante.
+     */
+    public function storeAvaliacao(Request $request, Acompanhante $acompanhante)
+    {
+        $request->validate([
+            'nota' => 'required|integer|min:1|max:5',
+            'comentario' => 'required|string|max:1000',
+        ]);
+
+        $acompanhante->avaliacoes()->create([
+            'user_id' => auth()->id(), // Garante que apenas usuários logados avaliem
+            'nota' => $request->nota,
+            'comentario' => $request->comentario,
+        ]);
+
+        return back()->with('success', 'Sua avaliação foi enviada com sucesso!');
+    }
 }

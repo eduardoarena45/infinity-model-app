@@ -14,68 +14,40 @@ class Acompanhante extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+    protected $table = 'acompanhantes';
+
     protected $fillable = [
         'user_id',
         'nome_artistico',
-        'imagem_principal_url',
+        'foto_principal_path',
         'data_nascimento',
-        'cidade',
-        'estado',
-        'descricao_curta',
+        'cidade_id',
+        'descricao',
         'valor_hora',
         'whatsapp',
         'is_verified',
         'is_featured',
-        'status', // Inclui o novo campo de status
+        'status',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
     protected $casts = [
-        'imagem_principal_url' => 'array',
         'is_verified' => 'boolean',
         'is_featured' => 'boolean',
+        'data_nascimento' => 'date',
+        'valor_hora' => 'decimal:2',
     ];
 
-    /**
-     * Accessor para a URL completa da foto principal.
-     */
-    public function getFotoPrincipalUrlCompletaAttribute(): ?string
+    public function getFotoPrincipalUrlAttribute(): string
     {
-        $path = is_array($this->imagem_principal_url) ? ($this->imagem_principal_url[0] ?? null) : $this->imagem_principal_url;
-
-        if ($path && Storage::disk('public')->exists($path)) {
-            return Storage::url($path);
+        if ($this->foto_principal_path && Storage::disk('public')->exists($this->foto_principal_path)) {
+            return Storage::url($this->foto_principal_path);
         }
-
-        return 'https://placehold.co/400x600/ccc/333?text=Sem+Foto';
+        return 'https://placehold.co/400x600/663399/FFFFFF?text=Sem+Foto';
     }
 
-    /**
-     * Accessor para a média de notas das avaliações.
-     */
-    public function getNotaMediaAttribute(): float
-    {
-        return round($this->avaliacoes()->avg('nota'), 1);
-    }
-
-    /**
-     * Accessor para calcular a idade.
-     */
     public function getIdadeAttribute(): ?int
     {
-        if ($this->data_nascimento) {
-            return Carbon::parse($this->data_nascimento)->age;
-        }
-        return null;
+        return $this->data_nascimento ? Carbon::parse($this->data_nascimento)->age : null;
     }
 
     // --- RELAÇÕES ---
@@ -85,9 +57,19 @@ class Acompanhante extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function cidade(): BelongsTo
+    {
+        return $this->belongsTo(Cidade::class);
+    }
+
+    /**
+     * Um perfil de Acompanhante tem muitas mídias na galeria.
+     * NOME CORRIGIDO PARA 'midias' PARA FUNCIONAR COM O FILAMENT RELATION MANAGER
+     */
     public function midias(): HasMany
     {
-        return $this->hasMany(Midia::class);
+        // Esta relação funciona porque tanto Acompanhante quanto Media estão ligados pelo user_id
+        return $this->hasMany(Media::class, 'user_id', 'user_id');
     }
 
     public function servicos(): BelongsToMany

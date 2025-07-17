@@ -2,132 +2,126 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Local;
-use App\Models\Midia;
+use App\Models\Estado;
+use App\Models\Media;
 use App\Models\Servico;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
+use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Mostra o formulário de edição do perfil da acompanhante.
-     */
-    public function edit(Request $request)
+    public function edit(Request $request): View
     {
-        $perfil = $request->user()->acompanhante()->firstOrCreate([]);
-        // Carrega as relações para usar na view
-        $perfil->load('midias', 'servicos');
-        // Pega todos os serviços disponíveis
-        $servicosDisponiveis = Servico::orderBy('nome')->get();
-        // Busca os estados distintos da nossa tabela de locais
-        $estados = Local::select('estado')->distinct()->orderBy('estado')->get();
+        $user = $request->user();
+        $acompanhante = $user->acompanhante()->firstOrCreate(['user_id' => $user->id]);
+        $estados = Estado::orderBy('nome')->get();
+        $servicos = Servico::orderBy('nome')->get();
+        $servicosAtuais = $acompanhante->servicos->pluck('id')->toArray();
+        $cidades = [];
+        if ($acompanhante->cidade_id && $acompanhante->cidade) {
+            $cidades = $acompanhante->cidade->estado->cidades()->orderBy('nome')->get();
+        }
 
-        return view('profile.edit-acompanhante', [
-            'user' => $request->user(),
-            'perfil' => $perfil,
-            'servicosDisponiveis' => $servicosDisponiveis,
-            'estados' => $estados, // Envia os nossos estados para a view
+        return view('profile.edit', [
+            'user' => $user,
+            'acompanhante' => $acompanhante,
+            'estados' => $estados,
+            'cidades' => $cidades,
+            'servicos' => $servicos,
+            'servicosAtuais' => $servicosAtuais,
         ]);
     }
 
-    /**
-     * Atualiza as informações do perfil da acompanhante.
-     */
-    public function update(Request $request)
+    public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $perfil = $user->acompanhante;
+        $acompanhante = $user->acompanhante;
 
         $validatedData = $request->validate([
             'nome_artistico' => ['required', 'string', 'max:255'],
             'data_nascimento' => ['required', 'date'],
-            'cidade' => ['required', 'string', 'max:255'],
-            'estado' => ['required', 'string', 'max:2'],
+            'cidade_id' => ['required', 'exists:cidades,id'],
             'whatsapp' => ['required', 'string', 'max:20'],
-            'descricao_curta' => ['required', 'string'],
-            'valor_hora' => ['required', 'numeric', 'min:0'],
-            'imagem_principal_url' => ['nullable', 'image', 'max:2048'],
+            'descricao' => ['required', 'string'],
+            'valor_hora' => ['required', 'numeric'],
+            'servicos' => ['nullable', 'array'],
+            'servicos.*' => ['exists:servicos,id'],
+            'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ]);
 
-        if ($request->hasFile('imagem_principal_url')) {
-            if ($perfil->imagem_principal_url) {
-                Storage::disk('public')->delete($perfil->imagem_principal_url);
+        if ($request->hasFile('foto_principal')) {
+            if ($acompanhante->foto_principal_path) {
+                Storage::disk('public')->delete($acompanhante->foto_principal_path);
             }
-            $path = $request->file('imagem_principal_url')->store('perfis', 'public');
-            $validatedData['imagem_principal_url'] = $path;
-            $validatedData['status'] = 'pendente';
+            $path = $request->file('foto_principal')->store('perfis', 'public');
+            $acompanhante->foto_principal_path = $path;
         }
 
-        $perfil->update($validatedData);
-        $perfil->servicos()->sync($request->input('servicos', []));
+        $acompanhante->fill($request->except(['foto_principal', 'servicos']));
+        $acompanhante->status = 'pendente';
+        $acompanhante->save();
 
-        return redirect()->route('profile.edit')->with('status', 'perfil-publico-atualizado');
+        $acompanhante->servicos()->sync($request->input('servicos', []));
+
+        return back()->with('status', 'profile-updated');
     }
 
-    /**
-     * Mostra a página para gerir a galeria de mídia.
-     */
-    public function gerirGaleria(Request $request)
+    public function updateAvatar(Request $request): RedirectResponse
     {
-        $perfil = $request->user()->acompanhante()->firstOrCreate([]);
-        $perfil->load('midias');
-        return view('profile.gerir-galeria', ['perfil' => $perfil]);
-    }
-
-    /**
-     * Lida com o upload de novas mídias para a galeria.
-     */
-    public function uploadGaleria(Request $request)
-    {
-        $request->validate(['midias.*' => 'required|file|mimes:jpg,jpeg,png,gif,mp4,mov,wmv,avi|max:10240']);
-        $perfil = $request->user()->acompanhante;
-        $assinatura = $request->user()->assinatura;
-
-        if (!$assinatura || !$assinatura->plano) {
-            return back()->withErrors(['limite' => 'Você não tem um plano de assinatura ativo.']);
+        $request->validate(['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
+        $user = $request->user();
+        if ($user->private_avatar_path) {
+            Storage::disk('public')->delete($user->private_avatar_path);
         }
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $user->update(['private_avatar_path' => $path]);
+        return back()->with('status', 'avatar-updated');
+    }
 
-        $plano = $assinatura->plano;
-        $fotosCount = $perfil->midias()->where('tipo', 'foto')->count();
-        $videosCount = $perfil->midias()->where('tipo', 'video')->count();
-
-        if ($request->hasFile('midias')) {
-            foreach ($request->file('midias') as $ficheiro) {
-                $tipo = Str::startsWith($ficheiro->getMimeType(), 'image') ? 'foto' : 'video';
-
-                if ($tipo === 'foto' && $fotosCount >= $plano->limite_fotos) {
-                    return back()->withErrors(['limite' => "Limite de {$plano->limite_fotos} fotos atingido para o seu plano."]);
-                }
-                if ($tipo === 'video' && $videosCount >= $plano->limite_videos) {
-                    return back()->withErrors(['limite' => "Limite de {$plano->limite_videos} vídeos atingido para o seu plano."]);
-                }
-
-                $path = $ficheiro->store('galerias', 'public');
-                $perfil->midias()->create(['caminho_arquivo' => $path, 'tipo' => $tipo, 'status' => 'pendente']);
-
-                if ($tipo === 'foto') $fotosCount++; else $videosCount++;
+    public function gerirGaleria(): View
+    {
+        $user = Auth::user();
+        $media = $user->media()->orderBy('created_at', 'desc')->get();
+        $photo_count = $media->count();
+        $photo_limit = $this->getPhotoLimit();
+        return view('profile.gerir-galeria', [
+            'media' => $media,
+            'photo_count' => $photo_count,
+            'photo_limit' => $photo_limit,
+        ]);
+    }
+    
+    public function uploadGaleria(Request $request): RedirectResponse
+    {
+        $user = auth()->user();
+        $limit = $this->getPhotoLimit();
+        $current_count = $user->media()->count();
+        if (($current_count + count($request->file('fotos'))) > $limit) {
+            return back()->with('error_message', "Limite de {$limit} fotos atingido!");
+        }
+        $request->validate(['fotos' => 'required', 'fotos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120']);
+        if ($request->hasFile('fotos')) {
+            foreach ($request->file('fotos') as $file) {
+                $path = $file->store('galerias/' . $user->id, 'public');
+                Media::create(['user_id' => $user->id, 'type' => 'image', 'path' => $path, 'status' => 'pendente']);
             }
-            $perfil->update(['status' => 'pendente']);
         }
-        return redirect()->route('galeria.gerir')->with('status', 'galeria-atualizada');
+        return back()->with('status', 'gallery-updated')->with('success_message', 'Fotos enviadas com sucesso!');
     }
 
-    /**
-     * Apaga uma mídia específica da galeria.
-     */
-    public function destroyMidia(Midia $midia)
+    public function destroyMidia(Media $media): RedirectResponse
     {
-        if ($midia->acompanhante->user_id !== Auth::id()) {
-            abort(403);
-        }
-        Storage::disk('public')->delete($midia->caminho_arquivo);
-        $midia->delete();
-        return redirect()->route('galeria.gerir')->with('status', 'foto-removida');
+        if ($media->user_id !== auth()->id()) { abort(403); }
+        Storage::disk('public')->delete($media->path);
+        $media->delete();
+        return back()->with('status', 'gallery-updated')->with('success_message', 'Foto removida!');
+    }
+
+    public function getPhotoLimit(): int
+    {
+        return 4;
     }
 }

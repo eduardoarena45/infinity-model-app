@@ -1,51 +1,59 @@
 <x-guest-layout>
-    {{-- O logótipo foi removido daqui, pois ele já é exibido pelo guest-layout --}}
-
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
-        <!-- Email -->
+        <!-- Name -->
         <div>
-            <x-input-label for="email" value="Email" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+            <x-input-label for="name" :value="__('Nome')" class="dark:text-gray-300" />
+            <x-text-input id="name" class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        </div>
+
+        <!-- Email Address -->
+        <div class="mt-4">
+            <x-input-label for="email" :value="__('Email')" class="dark:text-gray-300" />
+            <x-text-input id="email" class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600" type="email" name="email" :value="old('email')" required autocomplete="username" />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Senha -->
+        <!-- Password -->
         <div class="mt-4">
-            <x-input-label for="password" value="Senha" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
+            <x-input-label for="password" :value="__('Senha')" class="dark:text-gray-300" />
+            <x-text-input id="password" class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600"
+                            type="password"
+                            name="password"
+                            required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Confirmar Senha -->
+        <!-- Confirm Password -->
         <div class="mt-4">
-            <x-input-label for="password_confirmation" value="Confirmar Senha" />
-            <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
+            <x-input-label for="password_confirmation" :value="__('Confirmar Senha')" class="dark:text-gray-300" />
+            <x-text-input id="password_confirmation" class="block mt-1 w-full dark:bg-gray-900 dark:border-gray-600"
+                            type="password"
+                            name="password_confirmation" required autocomplete="new-password" />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
         <!-- CHECKBOX DE TERMOS DE SERVIÇO -->
         <div class="mt-4">
             <div class="flex items-start">
-                <div class="flex items-center h-5">
-                    <input id="terms" name="terms" type="checkbox" required class="focus:ring-[--color-accent] h-4 w-4 text-[--color-primary] border-gray-300 rounded">
-                </div>
-                <div class="ml-3 text-sm">
-                    <label for="terms" class="font-medium text-gray-700 dark:text-gray-300">Eu li e concordo com os <a href="{{ route('termos') }}" target="_blank" class="underline text-[--color-primary] hover:text-[--color-accent]">Termos de Serviço</a></label>
-                </div>
+                  <input id="terms" name="terms" type="checkbox" required class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+            </div>
+            <div class="ml-3 text-sm">
+                  <label for="terms" class="font-medium text-gray-300">Eu li e concordo com os <a href="{{ route('termos') }}" target="_blank" class="underline text-blue-400 hover:text-blue-300">Termos de Serviço</a></label>
             </div>
             <x-input-error :messages="$errors->get('terms')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('login') }}">
-                Já tem uma conta?
+        <div class="flex items-center justify-end mt-6">
+            <a class="underline text-sm text-gray-400 hover:text-gray-100 rounded-md" href="{{ route('login') }}">
+                {{ __('Já tem uma conta?') }}
             </a>
 
-            <x-primary-button class="ms-4" style="background-color: var(--color-primary);">
+            <button type="submit" class="ms-4 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition ease-in-out duration-150">
                 Registar
-            </x-primary-button>
+            </button>
         </div>
     </form>
 </x-guest-layout>

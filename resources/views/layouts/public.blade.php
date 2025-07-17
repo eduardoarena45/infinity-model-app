@@ -7,50 +7,53 @@
         <script src="https://cdn.tailwindcss.com"></script>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Poppins:wght@700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css"/>
 
-        {{-- DEFINIÇÃO DA NOVA PALETA DE CORES --}}
         <style>
             :root {
-                --color-primary: #4E2A51; /* Roxo Escuro (Ameixa) */
-                --color-accent: #B76E79;  /* Dourado Rosé */
-                --color-neutral: #36454F; /* Cinza Chumbo */
+                --color-primary: #4E2A51; /* Roxo Escuro/Vinho */
+                --color-accent: #B76E79;  /* Rosa Queimado */
+                --color-neutral: #36454F; /* Grafite */
             }
             body { font-family: 'Inter', sans-serif; }
             [x-cloak] { display: none !important; }
         </style>
     </head>
     <body class="bg-gray-100 dark:bg-gray-900 text-[--color-neutral] dark:text-gray-300">
-        <!-- INÍCIO DO AVISO DE IDADE -->
-    <div id="age-gate-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-2xl text-center max-w-sm mx-4">
-            <h2 class="text-2xl font-bold text-[--color-primary] mb-4">Confirmação de Idade</h2>
-            <p class="text-gray-700 dark:text-gray-300 mb-6">Este site contém conteúdo adulto. Você deve ter 18 anos ou mais para entrar. Por favor, confirme a sua idade.</p>
-            <div class="space-y-4">
-                <button id="confirm-age-btn" class="w-full bg-[--color-primary] text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity">
-                    Tenho 18 anos ou mais - Entrar
-                </button>
-                <a href="https://www.google.com" class="w-full block bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity">
-                    Tenho menos de 18 anos - Sair
-                </a>
+        
+        {{-- AVISO DE IDADE --}}
+        <div id="age-gate-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-90 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
+            <div class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-2xl text-center max-w-md mx-4 border border-gray-200 dark:border-slate-700 transform transition-all scale-95 opacity-0" id="age-gate-modal">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/50 mb-4">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Confirmação de Idade</h2>
+                <p class="text-gray-600 dark:text-gray-400 mb-8">
+                    Este site contém material destinado a adultos. <br>Para continuar, você deve ter **18 anos** ou mais.
+                </p>
+                <div class="space-y-4">
+                    <button id="confirm-age-btn" class="w-full text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105" style="background-color: var(--color-primary);">
+                        Tenho 18 anos ou mais - Entrar
+                    </button>
+                    <a href="https://www.google.com" class="w-full block bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-gray-300 font-bold py-3 px-6 rounded-lg hover:opacity-80 transition-opacity">
+                        Sair do Site
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    <!-- FIM DO AVISO DE IDADE -->
-     <nav class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
-        {{-- ... o seu menu de navegação ... --}}
-    </nav>
-        <nav class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+    
+        {{-- NAVEGAÇÃO --}}
+        <nav class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center">
-                        <a href="{{ route('cidades.index') }}" class="flex items-center space-x-2 text-2xl font-extrabold text-[--color-primary]">
-                            {{-- NOVO LOGÓTIPO EM SVG --}}
-                            <img src="{{ asset('images/meu-logo.png') }}" alt="Logotipo Infinity Model" class="h-10 w-auto">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                            </svg>
-                            <span>Infinity</span>
+                        <a href="{{ route('cidades.index') }}" class="flex items-center">
+                            <span class="text-2xl font-bold text-gray-800 dark:text-white" style="font-family: 'Poppins', sans-serif;">
+                                Infinity Model
+                            </span>
                         </a>
                     </div>
                     <div class="flex items-center space-x-4">
@@ -63,7 +66,8 @@
                         @else
                             <a href="{{ route('login') }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[--color-accent] transition-colors">Login</a>
                             @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[--color-primary] hover:opacity-90 transition-opacity">
+                                {{-- BOTÃO CORRIGIDO PARA AZUL --}}
+                                <a href="{{ route('register') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-opacity">
                                     Cadastrar
                                 </a>
                             @endif
@@ -73,10 +77,12 @@
             </div>
         </nav>
 
+        {{-- CONTEÚDO PRINCIPAL DA PÁGINA --}}
         <main>
             @yield('content')
         </main>
 
+        {{-- RODAPÉ --}}
         <footer class="bg-white dark:bg-gray-800 mt-16">
             <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-center space-x-6">
@@ -89,34 +95,35 @@
             </div>
         </footer>
 
+        {{-- SCRIPTS --}}
         <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
         <script>
-            Fancybox.bind("[data-fancybox]", { /* ... */ });
-        </script>
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const overlay = document.getElementById('age-gate-overlay');
-            const confirmBtn = document.getElementById('confirm-age-btn');
-            const ageVerified = sessionStorage.getItem('ageVerified');
+            Fancybox.bind("[data-fancybox]", {});
 
-            // Se o utilizador já verificou a idade nesta sessão, esconde o pop-up
-            if (ageVerified === 'true') {
-                overlay.style.display = 'none';
-            }
+            document.addEventListener('DOMContentLoaded', function() {
+                const overlay = document.getElementById('age-gate-overlay');
+                const modal = document.getElementById('age-gate-modal');
+                const confirmBtn = document.getElementById('confirm-age-btn');
+                const ageVerified = sessionStorage.getItem('ageVerified');
 
-            // Quando o botão de confirmação é clicado
-            confirmBtn.addEventListener('click', function() {
-                // Esconde o pop-up com uma transição suave
-                overlay.style.transition = 'opacity 0.5s ease';
-                overlay.style.opacity = '0';
-                setTimeout(() => {
+                if (ageVerified === 'true') {
                     overlay.style.display = 'none';
-                }, 500);
+                } else {
+                    setTimeout(() => {
+                        modal.style.transform = 'scale(1)';
+                        modal.style.opacity = '1';
+                    }, 100);
+                }
 
-                // Guarda a verificação na sessão do navegador
-                sessionStorage.setItem('ageVerified', 'true');
+                confirmBtn.addEventListener('click', function() {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 300);
+                    sessionStorage.setItem('ageVerified', 'true');
+                });
             });
-        });
-    </script>
+        </script>
+        @stack('scripts')
     </body>
 </html>
