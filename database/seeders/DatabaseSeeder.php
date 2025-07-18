@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\Acompanhante;
-use App\Models\Servico;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -26,7 +24,8 @@ class DatabaseSeeder extends Seeder
         // 2. Roda os seeders para criar os dados essenciais.
         $this->call([
             ServicoSeeder::class,
-            LocaisSeeder::class, // <-- ADICIONE ESTA LINHA
+            LocaisSeeder::class,
+            PlanosSeeder::class, // <-- ESTA É A ÚNICA LINHA ADICIONADA
         ]);
     }
 }

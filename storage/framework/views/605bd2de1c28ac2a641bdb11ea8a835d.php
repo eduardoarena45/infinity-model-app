@@ -6,7 +6,7 @@
         <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
         <title><?php echo e(config('app.name', 'Laravel')); ?> - Painel</title>
         <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
         <style>
             :root {
                 --color-primary: #4E2A51; 
@@ -38,7 +38,7 @@
                 <nav class="px-2 space-y-1">
                     <?php
                         $navLinks = [
-                            'dashboard' => 'Painel',
+                            'dashboard' => 'Meu Perfil', // <-- TEXTO ALTERADO AQUI
                             'profile.edit' => 'Editar Perfil',
                             'galeria.gerir' => 'Gerir Galeria',
                             'planos.selecionar' => 'Meu Plano',
@@ -124,4 +124,5 @@
             </div>
         </div>
     </body>
-</html><?php /**PATH C:\laragon\www\infinity_model_app\resources\views/layouts/app.blade.php ENDPATH**/ ?>
+</html>
+<?php /**PATH C:\laragon\www\infinity_model_app\resources\views/layouts/app.blade.php ENDPATH**/ ?>

@@ -5,6 +5,7 @@ use App\Http\Controllers\PlanoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VitrineController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth; // Importa a classe Auth
 
 /*
 |--------------------------------------------------------------------------
@@ -30,8 +31,17 @@ Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeA
 
 // --- ROTAS PRIVADAS (PARA UTILIZADORAS LOGADAS) ---
 Route::middleware('auth')->group(function () {
+    
+    // ROTA DO DASHBOARD ATUALIZADA PARA O NOVO DESIGN
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        $user = Auth::user();
+        // Carrega o perfil da acompanhante com as relações necessárias para o card
+        $acompanhante = $user->acompanhante()->with('cidade', 'avaliacoes')->firstOrCreate([]);
+        
+        // Envia o objeto completo da acompanhante para a view
+        return view('dashboard', [
+            'acompanhante' => $acompanhante
+        ]);
     })->name('dashboard');
 
     // Rotas para a gestão do perfil da acompanhante
@@ -39,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/meu-perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/meu-perfil/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
 
-    // Rotas para a gestão da galeria de mídia (AGORA CORRIGIDAS)
+    // Rotas para a gestão da galeria de mídia
     Route::get('/minha-galeria', [ProfileController::class, 'gerirGaleria'])->name('galeria.gerir');
     Route::post('/galeria', [ProfileController::class, 'uploadGaleria'])->name('galeria.upload');
     Route::delete('/galeria/{media}', [ProfileController::class, 'destroyMidia'])->name('galeria.destroy');
@@ -53,5 +63,5 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// Inclui as rotas de autenticação (login, registo, logout, etc.)
+// Inclui as rotas de autenticação
 require __DIR__.'/auth.php';

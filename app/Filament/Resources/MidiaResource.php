@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Filament\Resources;
+
 use App\Filament\Resources\MidiaResource\Pages;
-use App\Models\Midia;
+use App\Models\Media; // CORRIGIDO: Usa o Model 'Media' com 'e'
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -11,49 +13,63 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 class MidiaResource extends Resource
 {
-    protected static ?string $model = Midia::class;
+    protected static ?string $model = Media::class; // CORRIGIDO
     protected static ?string $navigationIcon = 'heroicon-o-camera';
     protected static ?string $navigationGroup = 'Moderação';
+    protected static ?string $label = 'Mídia'; // Nome singular
+    protected static ?string $pluralLabel = 'Mídias'; // Nome plural
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('caminho_arquivo')->label('Mídia')->height(100),
-                Tables\Columns\TextColumn::make('acompanhante.nome_artistico')->label('Perfil')->searchable(),
-                Tables\Columns\TextColumn::make('tipo')->badge(),
+                // CORRIGIDO: Usa a coluna 'path' e o Storage para exibir
+                Tables\Columns\ImageColumn::make('path')
+                    ->label('Mídia')
+                    ->disk('public')
+                    ->height(100),
+
+                // CORRIGIDO: Acessa o nome através da relação user->acompanhante
+                Tables\Columns\TextColumn::make('user.acompanhante.nome_artistico')
+                    ->label('Perfil')
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('type')->label('Tipo')->badge(),
+
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'pendente' => 'warning', 'aprovado' => 'success', 'rejeitado' => 'danger',
                 }),
             ])
-            ->filters([ Tables\Filters\SelectFilter::make('status')->options(['pendente'=>'Pendente','aprovado'=>'Aprovado','rejeitado'=>'Rejeitado'])->default('pendente') ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->options(['pendente'=>'Pendente','aprovado'=>'Aprovado','rejeitado'=>'Rejeitado'])
+                    ->default('pendente')
+            ])
             ->actions([
                 Tables\Actions\Action::make('aprovar')->label('Aprovar')->icon('heroicon-o-check-circle')->color('success')->requiresConfirmation()
-                    ->action(function (Midia $record) {
-                        if ($record->tipo === 'foto') {
-                            // LÓGICA ATUALIZADA PARA USAR O LOGOTIPO
+                    ->action(function (Media $record) { // CORRIGIDO: Usa 'Media'
+                        if ($record->type === 'image') { // CORRIGIDO: Usa 'image'
                             $manager = new ImageManager(new Driver());
-                            $path = Storage::disk('public')->path($record->caminho_arquivo);
+                            $path = Storage::disk('public')->path($record->path); // CORRIGIDO: Usa 'path'
                             $image = $manager->read($path);
                             $logoPath = public_path('images/logo-watermark.png');
 
                             if (file_exists($logoPath)) {
-                                $image->place($logoPath, 'bottom-right', 10, 10, 70); // Posição, offset X, offset Y, opacidade
+                                $image->place($logoPath, 'bottom-right', 10, 10, 70);
                             }
-
                             $image->save($path);
                         }
                         $record->update(['status' => 'aprovado']);
-                    })->visible(fn (Midia $record): bool => $record->status !== 'aprovado'),
+                    })->visible(fn (Media $record): bool => $record->status !== 'aprovado'), // CORRIGIDO: Usa 'Media'
 
                 Tables\Actions\Action::make('rejeitar')->label('Rejeitar')->icon('heroicon-o-x-circle')->color('danger')->requiresConfirmation()
-                    ->action(fn (Midia $record) => $record->update(['status' => 'rejeitado']))
-                    ->visible(fn (Midia $record): bool => $record->status !== 'rejeitado'),
+                    ->action(fn (Media $record) => $record->update(['status' => 'rejeitado'])) // CORRIGIDO: Usa 'Media'
+                    ->visible(fn (Media $record): bool => $record->status !== 'rejeitado'), // CORRIGIDO: Usa 'Media'
             ]);
     }
-
+    
     public static function getPages(): array
     {
         return ['index' => Pages\ListMidias::route('/')];
-    }
+    }    
 }
