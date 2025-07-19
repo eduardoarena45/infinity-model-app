@@ -24,7 +24,15 @@
                 
                 
                 <?php $__currentLoopData = $planos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $plano): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col <?php if($plano->destaque): ?> border-2 border-yellow-500 <?php else: ?> border-2 border-gray-200 dark:border-gray-700 <?php endif; ?>">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col 
+                        <?php if($plano->id === $assinaturaAtivaId): ?> 
+                            border-2 border-green-500 
+                        <?php elseif($plano->destaque): ?> 
+                            border-2 border-yellow-500 
+                        <?php else: ?> 
+                            border-2 border-gray-200 dark:border-gray-700 
+                        <?php endif; ?>">
+                        
                         <h2 class="text-2xl font-bold text-center <?php if($plano->preco == 0): ?> text-gray-500 dark:text-gray-400 <?php else: ?> text-[--color-primary] dark:text-cyan-400 <?php endif; ?>"><?php echo e($plano->nome); ?></h2>
                         <p class="text-4xl font-extrabold text-center my-4 dark:text-white">R$ <?php echo e(number_format($plano->preco, 2, ',', '.')); ?></p>
                         
@@ -68,8 +76,10 @@
                         </ul>
                         
                         <div class="mt-6">
-                            <?php if($plano->preco == 0): ?>
-                                <span class="w-full block text-center bg-gray-200 dark:bg-gray-700 text-gray-500 font-bold py-3 px-6 rounded-lg">Plano Atual</span>
+                            <?php if($plano->id === $assinaturaAtivaId): ?>
+                                <span class="w-full block text-center bg-green-500 text-white font-bold py-3 px-6 rounded-lg">Seu Plano Atual</span>
+                            <?php elseif($plano->preco == 0): ?>
+                                <span class="w-full block text-center bg-gray-200 dark:bg-gray-700 text-gray-500 font-bold py-3 px-6 rounded-lg">Plano Padrão</span>
                             <?php else: ?>
                                 <form action="<?php echo e(route('planos.assinar', $plano)); ?>" method="POST">
                                     <?php echo csrf_field(); ?>

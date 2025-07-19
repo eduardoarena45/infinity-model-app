@@ -15,7 +15,15 @@
                 
                 {{-- Loop para mostrar TODOS os planos que vêm do banco de dados --}}
                 @foreach($planos as $plano)
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col @if($plano->destaque) border-2 border-yellow-500 @else border-2 border-gray-200 dark:border-gray-700 @endif">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex flex-col 
+                        @if($plano->id === $assinaturaAtivaId) 
+                            border-2 border-green-500 
+                        @elseif($plano->destaque) 
+                            border-2 border-yellow-500 
+                        @else 
+                            border-2 border-gray-200 dark:border-gray-700 
+                        @endif">
+                        
                         <h2 class="text-2xl font-bold text-center @if($plano->preco == 0) text-gray-500 dark:text-gray-400 @else text-[--color-primary] dark:text-cyan-400 @endif">{{ $plano->nome }}</h2>
                         <p class="text-4xl font-extrabold text-center my-4 dark:text-white">R$ {{ number_format($plano->preco, 2, ',', '.') }}</p>
                         
@@ -59,8 +67,10 @@
                         </ul>
                         
                         <div class="mt-6">
-                            @if ($plano->preco == 0)
-                                <span class="w-full block text-center bg-gray-200 dark:bg-gray-700 text-gray-500 font-bold py-3 px-6 rounded-lg">Plano Atual</span>
+                            @if ($plano->id === $assinaturaAtivaId)
+                                <span class="w-full block text-center bg-green-500 text-white font-bold py-3 px-6 rounded-lg">Seu Plano Atual</span>
+                            @elseif ($plano->preco == 0)
+                                <span class="w-full block text-center bg-gray-200 dark:bg-gray-700 text-gray-500 font-bold py-3 px-6 rounded-lg">Plano Padrão</span>
                             @else
                                 <form action="{{ route('planos.assinar', $plano) }}" method="POST">
                                     @csrf
