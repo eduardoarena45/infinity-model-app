@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers; // <-- ERRO DE SINTAXE CORRIGIDO AQUI
 
 use App\Models\Estado;
 use App\Models\Media;
@@ -86,7 +86,10 @@ class ProfileController extends Controller
         $user = Auth::user();
         $media = $user->media()->orderBy('created_at', 'desc')->get();
         $photo_count = $media->count();
-        $photo_limit = $this->getPhotoLimit();
+        
+        // Agora busca o limite dinâmico do usuário
+        $photo_limit = $user->getPhotoLimit();
+
         return view('profile.gerir-galeria', [
             'media' => $media,
             'photo_count' => $photo_count,
@@ -97,7 +100,10 @@ class ProfileController extends Controller
     public function uploadGaleria(Request $request): RedirectResponse
     {
         $user = auth()->user();
-        $limit = $this->getPhotoLimit();
+        
+        // Agora busca o limite dinâmico do usuário
+        $limit = $user->getPhotoLimit();
+        
         $current_count = $user->media()->count();
         if (($current_count + count($request->file('fotos'))) > $limit) {
             return back()->with('error_message', "Limite de {$limit} fotos atingido!");
@@ -120,8 +126,5 @@ class ProfileController extends Controller
         return back()->with('status', 'gallery-updated')->with('success_message', 'Foto removida!');
     }
 
-    public function getPhotoLimit(): int
-    {
-        return 4;
-    }
+    // A função getPhotoLimit() foi REMOVIDA daqui, pois agora está no Model User.
 }

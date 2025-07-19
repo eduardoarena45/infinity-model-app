@@ -8,17 +8,10 @@ class PlanoController extends Controller
 {
     // Mostra a página para escolher um plano
     public function selecionar() {
+        // Busca todos os planos do banco de dados, ordenados pelo preço
         $planos = Plano::orderBy('preco')->get();
-        // Adiciona um plano "Grátis" manualmente para exibição, se não existir no banco
-        $planoGratis = (object)[
-            'nome' => 'Plano Grátis',
-            'preco' => 0.00,
-            'descricao' => 'O ponto de partida confiável com selo de verificação e WhatsApp visível.',
-            'limite_fotos' => 4,
-            'permite_videos' => false,
-            'destaque' => false,
-        ];
-        return view('planos.selecionar', ['planos' => $planos, 'planoGratis' => $planoGratis]);
+        
+        return view('planos.selecionar', ['planos' => $planos]);
     }
 
     // Assina o plano escolhido

@@ -4,9 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MidiaResource\Pages;
 use App\Models\Media; // CORRIGIDO: Usa o Model 'Media' com 'e'
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -18,6 +20,12 @@ class MidiaResource extends Resource
     protected static ?string $navigationGroup = 'Moderação';
     protected static ?string $label = 'Mídia'; // Nome singular
     protected static ?string $pluralLabel = 'Mídias'; // Nome plural
+
+    // O formulário não é necessário aqui, pois não editamos mídias individualmente
+    public static function form(Form $form): Form
+    {
+        return $form->schema([]);
+    }
 
     public static function table(Table $table): Table
     {
@@ -65,6 +73,31 @@ class MidiaResource extends Resource
                 Tables\Actions\Action::make('rejeitar')->label('Rejeitar')->icon('heroicon-o-x-circle')->color('danger')->requiresConfirmation()
                     ->action(fn (Media $record) => $record->update(['status' => 'rejeitado'])) // CORRIGIDO: Usa 'Media'
                     ->visible(fn (Media $record): bool => $record->status !== 'rejeitado'), // CORRIGIDO: Usa 'Media'
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                     Tables\Actions\BulkAction::make('aprovar_em_massa')
+                        ->label('Aprovar Selecionados')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(function (Collection $records) {
+                            $records->each(function (Media $record) {
+                                if ($record->status === 'pendente' && $record->type === 'image') {
+                                    $manager = new ImageManager(new Driver());
+                                    $path = Storage::disk('public')->path($record->path);
+                                    $image = $manager->read($path);
+                                    $logoPath = public_path('images/logo-watermark.png');
+                                    if (file_exists($logoPath)) {
+                                        $image->place($logoPath, 'bottom-right', 10, 10, 70);
+                                    }
+                                    $image->save($path);
+                                }
+                                $record->update(['status' => 'aprovado']);
+                            });
+                        }),
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
             ]);
     }
     
