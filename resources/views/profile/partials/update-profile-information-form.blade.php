@@ -14,10 +14,36 @@
 
         {{-- Foto Principal --}}
         <div>
-            <x-input-label for="foto_principal" value="Foto Principal" />
-            <input id="foto_principal" name="foto_principal" type="file" class="mt-1 block w-full text-gray-900 dark:text-gray-100" />
+            <x-input-label for="foto_principal" value="Foto Principal (Pública)" />
+            <input id="foto_principal" name="foto_principal" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
             <x-input-error class="mt-2" :messages="$errors->get('foto_principal')" />
         </div>
+
+        {{-- ======================================================= --}}
+        {{-- === CÓDIGO NOVO ADICIONADO PARA FOTO DE VERIFICAÇÃO === --}}
+        {{-- ======================================================= --}}
+        <div class="border-t border-b border-gray-200 dark:border-gray-700 py-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Verificação de Identidade (Privado)
+            </h3>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Para sua segurança, envie uma foto nítida do seu rosto segurando seu documento de identidade (RG ou CNH). Esta imagem é confidencial e será vista apenas pela administração.
+            </p>
+            <div class="mt-4">
+                <x-input-label for="foto_verificacao" value="Foto de Verificação com Documento" />
+                <input id="foto_verificacao" name="foto_verificacao" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                
+                @if($acompanhante->foto_verificacao_path)
+                    <p class="mt-2 text-sm text-green-600">✓ Um documento já foi enviado. Enviar um novo irá substituir o anterior.</p>
+                @endif
+                
+                <x-input-error class="mt-2" :messages="$errors->get('foto_verificacao')" />
+            </div>
+        </div>
+        {{-- ======================================================= --}}
+        {{-- =================== FIM DO CÓDIGO NOVO ================== --}}
+        {{-- ======================================================= --}}
+
 
         {{-- Nome Artístico --}}
         <div>
@@ -52,12 +78,12 @@
             <select id="cidade_id" name="cidade_id" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full" {{ !$acompanhante->cidade_id ? 'disabled' : '' }}>
                 <option value="">Selecione um estado primeiro</option>
                  @if ($cidades)
-                    @foreach ($cidades as $cidade)
-                        <option value="{{ $cidade->id }}" {{ old('cidade_id', $acompanhante->cidade_id) == $cidade->id ? 'selected' : '' }}>
-                            {{ $cidade->nome }}
-                        </option>
-                    @endforeach
-                @endif
+                     @foreach ($cidades as $cidade)
+                         <option value="{{ $cidade->id }}" {{ old('cidade_id', $acompanhante->cidade_id) == $cidade->id ? 'selected' : '' }}>
+                             {{ $cidade->nome }}
+                         </option>
+                     @endforeach
+                 @endif
             </select>
         </div>
 
@@ -89,7 +115,7 @@
                 @foreach ($servicos as $servico)
                     <label for="servico_{{ $servico->id }}" class="flex items-center">
                         <input id="servico_{{ $servico->id }}" name="servicos[]" type="checkbox" value="{{ $servico->id }}"
-                               class="rounded dark:bg-gray-900 border-gray-300 dark:text-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
+                               class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
                                {{ in_array($servico->id, old('servicos', $servicosAtuais)) ? 'checked' : '' }}>
                         <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ $servico->nome }}</span>
                     </label>

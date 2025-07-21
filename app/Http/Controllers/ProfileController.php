@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers; // <-- ERRO DE SINTAXE CORRIGIDO AQUI
+namespace App\Http\Controllers;
 
 use App\Models\Estado;
 use App\Models\Media;
@@ -50,8 +50,12 @@ class ProfileController extends Controller
             'servicos' => ['nullable', 'array'],
             'servicos.*' => ['exists:servicos,id'],
             'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            
+            // --- VALIDAÇÃO ADICIONADA ---
+            'foto_verificacao' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'], // Aumentei o tamanho para documentos
         ]);
 
+        // Lógica para a foto principal (pública) - SEM ALTERAÇÃO
         if ($request->hasFile('foto_principal')) {
             if ($acompanhante->foto_principal_path) {
                 Storage::disk('public')->delete($acompanhante->foto_principal_path);
@@ -60,7 +64,19 @@ class ProfileController extends Controller
             $acompanhante->foto_principal_path = $path;
         }
 
-        $acompanhante->fill($request->except(['foto_principal', 'servicos']));
+        // --- LÓGICA ADICIONADA PARA A FOTO DE VERIFICAÇÃO (PRIVADA) ---
+        if ($request->hasFile('foto_verificacao')) {
+            // Se já existir uma foto de verificação antiga, apaga ela primeiro
+            if ($acompanhante->foto_verificacao_path) {
+                Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
+            }
+            // Salva a nova foto no disco PRIVADO 'local'
+            $path = $request->file('foto_verificacao')->store('documentos_verificacao', 'local');
+            $acompanhante->foto_verificacao_path = $path;
+        }
+        // --- FIM DA LÓGICA ADICIONADA ---
+
+        $acompanhante->fill($request->except(['foto_principal', 'foto_verificacao', 'servicos']));
         $acompanhante->status = 'pendente';
         $acompanhante->save();
 
@@ -69,6 +85,7 @@ class ProfileController extends Controller
         return back()->with('status', 'profile-updated');
     }
 
+    // O resto do seu arquivo continua igual...
     public function updateAvatar(Request $request): RedirectResponse
     {
         $request->validate(['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
@@ -86,8 +103,6 @@ class ProfileController extends Controller
         $user = Auth::user();
         $media = $user->media()->orderBy('created_at', 'desc')->get();
         $photo_count = $media->count();
-        
-        // Agora busca o limite dinâmico do usuário
         $photo_limit = $user->getPhotoLimit();
 
         return view('profile.gerir-galeria', [
@@ -100,10 +115,7 @@ class ProfileController extends Controller
     public function uploadGaleria(Request $request): RedirectResponse
     {
         $user = auth()->user();
-        
-        // Agora busca o limite dinâmico do usuário
         $limit = $user->getPhotoLimit();
-        
         $current_count = $user->media()->count();
         if (($current_count + count($request->file('fotos'))) > $limit) {
             return back()->with('error_message', "Limite de {$limit} fotos atingido!");
@@ -125,6 +137,4 @@ class ProfileController extends Controller
         $media->delete();
         return back()->with('status', 'gallery-updated')->with('success_message', 'Foto removida!');
     }
-
-    // A função getPhotoLimit() foi REMOVIDA daqui, pois agora está no Model User.
 }

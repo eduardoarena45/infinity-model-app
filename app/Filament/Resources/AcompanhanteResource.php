@@ -69,6 +69,22 @@ class AcompanhanteResource extends Resource
                             ->columns(3)
                     ])->columns(2),
                 
+                // --- NOVA SEÇÃO ADICIONADA AQUI ---
+                Forms\Components\Section::make('Verificação de Identidade')
+                    ->description('Esta informação é privada e será usada apenas pela administração para confirmar a autenticidade do seu perfil. Ela não será exibida publicamente.')
+                    ->schema([
+                        Forms\Components\FileUpload::make('foto_verificacao_path')
+                            ->label('Foto de Verificação (Rosto + Documento)')
+                            ->helperText('Para sua segurança, tire uma foto nítida do seu rosto segurando seu documento de identidade (RG ou CNH) aberto ao lado. Sua face e a foto do documento devem estar claramente visíveis.')
+                            ->disk('local') // Salva no disco PRIVADO
+                            ->directory('documentos_verificacao')
+                            ->visibility('private')
+                            ->image()
+                            ->imageEditor()
+                            ->required(),
+                    ]),
+                // --- FIM DA NOVA SEÇÃO ---
+                
                 Forms\Components\Section::make('Mídia')
                     ->schema([
                         Forms\Components\FileUpload::make('foto_principal_path')
@@ -82,14 +98,10 @@ class AcompanhanteResource extends Resource
     {
         return $table
             ->columns([
-                // --- LINHA CORRIGIDA ---
-                // Agora aponta para a coluna do banco de dados e especifica o disco.
                 Tables\Columns\ImageColumn::make('foto_principal_path')
                     ->label('Foto')
-                    ->disk('public') // Diz ao Filament para procurar no disco 'public'
+                    ->disk('public')
                     ->circular(),
-                // --- FIM DA CORREÇÃO ---
-
                 Tables\Columns\TextColumn::make('nome_artistico')->searchable(),
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'pendente' => 'warning', 'aprovado' => 'success', 'rejeitado' => 'danger',
@@ -125,5 +137,5 @@ class AcompanhanteResource extends Resource
             'create' => Pages\CreateAcompanhante::route('/create'),
             'edit' => Pages\EditAcompanhante::route('/{record}/edit'),
         ];
-    }    
+    }       
 }
