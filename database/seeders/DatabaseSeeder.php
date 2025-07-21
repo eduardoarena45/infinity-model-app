@@ -24,8 +24,8 @@ class DatabaseSeeder extends Seeder
         // 2. Roda os seeders para criar os dados essenciais.
         $this->call([
             ServicoSeeder::class,
-            LocaisSeeder::class,
-            PlanosSeeder::class, // <-- ESTA É A ÚNICA LINHA ADICIONADA
+            // A linha 'LocaisSeeder::class,' foi removida.
+            PlanosSeeder::class,
         ]);
     }
 }
