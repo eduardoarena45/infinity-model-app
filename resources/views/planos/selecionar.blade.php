@@ -41,10 +41,14 @@
                                 {{ $plano->limite_fotos }} Fotos na Galeria
                             </li>
 
+                            {{-- ======================================================= --}}
+                            {{-- === CÓDIGO NOVO PARA VÍDEOS === --}}
+                            {{-- ======================================================= --}}
                             @if ($plano->permite_videos)
                                 <li class="flex items-center">
                                     <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    Permite Vídeos na Galeria
+                                    {{-- Mostra o limite de vídeos do plano --}}
+                                    {{ $plano->limite_videos }} Vídeos na Galeria
                                 </li>
                             @else
                                 <li class="flex items-center text-gray-400 line-through">
@@ -52,6 +56,10 @@
                                     Vídeos na Galeria
                                 </li>
                             @endif
+                            {{-- ======================================================= --}}
+                            {{-- =================== FIM DO CÓDIGO NOVO ================== --}}
+                            {{-- ======================================================= --}}
+
 
                             @if ($plano->destaque)
                                 <li class="flex items-center">

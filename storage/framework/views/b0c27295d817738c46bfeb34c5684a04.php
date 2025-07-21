@@ -50,10 +50,14 @@
                                 <?php echo e($plano->limite_fotos); ?> Fotos na Galeria
                             </li>
 
+                            
+                            
+                            
                             <?php if($plano->permite_videos): ?>
                                 <li class="flex items-center">
                                     <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    Permite Vídeos na Galeria
+                                    
+                                    <?php echo e($plano->limite_videos); ?> Vídeos na Galeria
                                 </li>
                             <?php else: ?>
                                 <li class="flex items-center text-gray-400 line-through">
@@ -61,6 +65,10 @@
                                     Vídeos na Galeria
                                 </li>
                             <?php endif; ?>
+                            
+                            
+                            
+
 
                             <?php if($plano->destaque): ?>
                                 <li class="flex items-center">
@@ -101,5 +109,4 @@
 <?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
 <?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
 <?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
-<?php endif; ?>
-<?php /**PATH C:\laragon\www\infinity_model_app\resources\views/planos/selecionar.blade.php ENDPATH**/ ?>
+<?php endif; ?><?php /**PATH C:\laragon\www\infinity_model_app\resources\views/planos/selecionar.blade.php ENDPATH**/ ?>

@@ -49,11 +49,21 @@ class PlanoResource extends Resource
 
                         Forms\Components\TextInput::make('limite_fotos')
                             ->numeric()->required()->helperText('Número de fotos permitidas na galeria.'),
+
+                        // --- CAMPO ADICIONADO AQUI ---
+                        Forms\Components\TextInput::make('limite_videos')
+                            ->label('Limite vídeos')
+                            ->numeric()
+                            ->required()
+                            ->default(0)
+                            ->helperText('Número de vídeos permitidos na galeria.'),
+                        // --- FIM DO CAMPO ADICIONADO ---
+
                     ])->columns(2),
                 
                 Forms\Components\Section::make('Funcionalidades Extras')
                     ->schema([
-                        Forms\Components\Toggle::make('destaque')
+                        Forms\Components\Toggle::make('destaque') // Nome do campo corrigido
                             ->label('Perfil em Destaque?')
                             ->helperText('Ative se este plano coloca o perfil no topo da página.')
                             ->required(),
@@ -72,7 +82,12 @@ class PlanoResource extends Resource
                 Tables\Columns\TextColumn::make('nome')->searchable(),
                 Tables\Columns\TextColumn::make('preco')->money('BRL')->sortable(),
                 Tables\Columns\TextColumn::make('limite_fotos')->label('Limite de Fotos')->sortable(),
-                Tables\Columns\IconColumn::make('destaque')->label('Destaque')->boolean(),
+
+                // --- COLUNA ADICIONADA AQUI ---
+                Tables\Columns\TextColumn::make('limite_videos')->label('Limite de Vídeos')->sortable(),
+                // --- FIM DA COLUNA ADICIONADA ---
+
+                Tables\Columns\IconColumn::make('destaque')->label('Destaque')->boolean(), // Nome do campo corrigido
                 Tables\Columns\IconColumn::make('permite_videos')->label('Permite Vídeos')->boolean(),
             ])
             ->actions([
