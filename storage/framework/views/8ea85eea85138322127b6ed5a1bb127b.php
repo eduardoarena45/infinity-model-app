@@ -2,7 +2,6 @@
 
 <?php $__env->startSection('content'); ?>
 
-<!-- INÍCIO DO BANNER -->
 <div class="relative bg-black">
     <div aria-hidden="true" class="absolute inset-0 overflow-hidden">
         <img src="<?php echo e(asset('images/meu-banner.jpg')); ?>" alt="Banner principal do Infinity Model" class="w-full h-full object-center object-cover">
@@ -20,56 +19,102 @@
         </button>
     </div>
 </div>
-<!-- FIM DO BANNER -->
-
-<!-- INÍCIO DO POP-UP (MODAL) DE CIDADES -->
 <div id="cities-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 sm:p-8 max-w-lg w-full m-4">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Selecione uma Cidade</h2>
+            <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white">Selecione a Região</h2>
             <button id="close-cities-modal-btn" class="text-gray-500 hover:text-gray-800 dark:hover:text-white text-3xl leading-none">&times;</button>
         </div>
-        <div class="max-h-[60vh] overflow-y-auto pr-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <?php $__empty_1 = true; $__currentLoopData = $cidades; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cidade): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+
+        
+        <div class="space-y-4">
+            
+            <div>
+                <label for="estado-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">1. Escolha um Estado</label>
+                <select id="estado-select" class="mt-1 block w-full p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Selecione...</option>
                     
-                    <a href="<?php echo e(route('vitrine.por.cidade', ['cidade' => $cidade->nome])); ?>" class="city-item block text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                        <h3 class="font-bold text-lg text-[--color-primary] dark:text-white"><?php echo e($cidade->nome); ?></h3>
-                    </a>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <p class="col-span-full text-center text-gray-500">Nenhuma cidade com perfis disponíveis no momento.</p>
-                <?php endif; ?>
+                    <?php $__currentLoopData = $estados; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $estado): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($estado->id); ?>"><?php echo e($estado->nome); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </select>
+            </div>
+
+            
+            <div>
+                <label for="cidade-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300">2. Escolha uma Cidade</label>
+                <select id="cidade-select" class="mt-1 block w-full p-2 border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500" disabled>
+                    <option value="">Aguardando seleção do estado...</option>
+                </select>
             </div>
         </div>
     </div>
 </div>
-<!-- FIM DO POP-UP (MODAL) DE CIDADES -->
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const openBtn = document.getElementById('open-cities-modal-btn');
         const closeBtn = document.getElementById('close-cities-modal-btn');
         const modal = document.getElementById('cities-modal');
 
-        if (openBtn && modal) {
-            openBtn.addEventListener('click', () => {
-                modal.classList.remove('hidden');
+        const estadoSelect = document.getElementById('estado-select');
+        const cidadeSelect = document.getElementById('cidade-select');
+
+        // LÓGICA PARA CARREGAR CIDADES QUANDO UM ESTADO É SELECIONADO
+        if (estadoSelect) {
+            estadoSelect.addEventListener('change', function () {
+                const estadoId = this.value;
+                cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+                cidadeSelect.disabled = true;
+
+                if (!estadoId) {
+                    cidadeSelect.innerHTML = '<option value="">Aguardando seleção do estado...</option>';
+                    return;
+                }
+
+                // Faz a chamada à API para buscar as cidades
+                fetch(`/api/cidades/${estadoId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        cidadeSelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
+                        data.forEach(cidade => {
+                            const option = document.createElement('option');
+                            option.value = cidade.nome; // Usamos o nome da cidade para o redirect
+                            option.textContent = cidade.nome;
+                            cidadeSelect.appendChild(option);
+                        });
+                        cidadeSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Erro ao buscar cidades:', error);
+                        cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+                    });
             });
         }
-        if (closeBtn && modal) {
-            closeBtn.addEventListener('click', () => {
-                modal.classList.add('hidden');
+        
+        // LÓGICA PARA REDIRECIONAR QUANDO UMA CIDADE É SELECIONADA
+        if (cidadeSelect) {
+            cidadeSelect.addEventListener('change', function() {
+                const cidadeNome = this.value;
+                if (cidadeNome) {
+                    // Monta a URL da vitrine e redireciona o usuário
+                    window.location.href = `/vitrine/${cidadeNome}`;
+                }
             });
+        }
+
+        // Código original para abrir e fechar o modal
+        if (openBtn && modal) {
+            openBtn.addEventListener('click', () => { modal.classList.remove('hidden'); });
+        }
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', () => { modal.classList.add('hidden'); });
         }
         if (modal) {
             modal.addEventListener('click', (event) => {
-                if (event.target === modal) {
-                    modal.classList.add('hidden');
-                }
+                if (event.target === modal) { modal.classList.add('hidden'); }
             });
         }
     });
 </script>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.public', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\infinity_model_app\resources\views/cidades.blade.php ENDPATH**/ ?>

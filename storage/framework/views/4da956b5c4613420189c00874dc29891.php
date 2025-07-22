@@ -50,24 +50,22 @@
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Serviços</h3>
                     <div class="flex flex-wrap gap-3">
                         <?php $__currentLoopData = $acompanhante->servicos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $servico): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <span class="inline-block bg-pink-100 text-pink-800 text-sm font-medium px-3 py-1 rounded-full dark:bg-pink-900 dark:text-pink-300"><?php echo e($servico->nome); ?></span>
+                            
+                            <span class="text-gray-300 text-sm font-medium px-3 py-1 border border-gray-600 rounded-full"><?php echo e($servico->nome); ?></span>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
                 </section>
                 <?php endif; ?>
-
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Galeria</h3>
                     <?php if($acompanhante->midias->where('status', 'aprovado')->isNotEmpty()): ?>
                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                             <?php $__currentLoopData = $acompanhante->midias->where('status', 'aprovado'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $midia): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 
-                                
                                 <?php if($midia->type === 'image'): ?>
                                     <a href="<?php echo e(Storage::url($midia->path)); ?>" data-fancybox="gallery" data-caption="<?php echo e($acompanhante->nome_artistico); ?>">
                                         <img src="<?php echo e(Storage::url($midia->path)); ?>" class="rounded-lg object-cover w-full h-48 hover:opacity-80 transition-opacity shadow-md" alt="Foto da galeria">
                                     </a>
-                                
                                 
                                 <?php elseif($midia->type === 'video' && $midia->thumbnail_path): ?>
                                     <a href="<?php echo e(Storage::url($midia->path)); ?>" data-fancybox="gallery" data-caption="<?php echo e($acompanhante->nome_artistico); ?>">
@@ -88,6 +86,7 @@
                         <p class="text-gray-500 text-center">Nenhuma mídia na galeria ainda.</p>
                     <?php endif; ?>
                 </section>
+                
                 
             </div>
         </div>

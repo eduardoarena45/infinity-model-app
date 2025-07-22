@@ -52,25 +52,23 @@
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Serviços</h3>
                     <div class="flex flex-wrap gap-3">
                         @foreach($acompanhante->servicos as $servico)
-                            <span class="inline-block bg-pink-100 text-pink-800 text-sm font-medium px-3 py-1 rounded-full dark:bg-pink-900 dark:text-pink-300">{{ $servico->nome }}</span>
+                            {{-- A LINHA ABAIXO FOI ALTERADA PARA O ESTILO MAIS ELEGANTE --}}
+                            <span class="text-gray-300 text-sm font-medium px-3 py-1 border border-gray-600 rounded-full">{{ $servico->nome }}</span>
                         @endforeach
                     </div>
                 </section>
                 @endif
-
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Galeria</h3>
                     @if($acompanhante->midias->where('status', 'aprovado')->isNotEmpty())
                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                             @foreach($acompanhante->midias->where('status', 'aprovado') as $midia)
                                 
-                                {{-- Se for IMAGEM, usa a tag <img> com Fancybox --}}
                                 @if($midia->type === 'image')
                                     <a href="{{ Storage::url($midia->path) }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
                                         <img src="{{ Storage::url($midia->path) }}" class="rounded-lg object-cover w-full h-48 hover:opacity-80 transition-opacity shadow-md" alt="Foto da galeria">
                                     </a>
                                 
-                                {{-- Se for VÍDEO, mostra a thumbnail e um ícone de play --}}
                                 @elseif($midia->type === 'video' && $midia->thumbnail_path)
                                     <a href="{{ Storage::url($midia->path) }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
                                         <div class="relative w-full h-48 bg-black rounded-lg shadow-md group">
@@ -90,6 +88,7 @@
                         <p class="text-gray-500 text-center">Nenhuma mídia na galeria ainda.</p>
                     @endif
                 </section>
+                
                 {{-- ... seu código de avaliações ... --}}
             </div>
         </div>

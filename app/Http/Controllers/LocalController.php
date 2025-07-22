@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Estado;
+use App\Models\Cidade; // Importa o Model Cidade
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -14,8 +15,13 @@ class LocalController extends Controller
      */
     public function getCidadesPorEstado(Estado $estado): JsonResponse
     {
-        // Carrega as cidades relacionadas ao estado, ordena por nome e retorna como JSON
-        $cidades = $estado->cidades()->orderBy('nome')->get();
+        // LÓGICA CORRIGIDA: Busca apenas cidades do estado que têm acompanhantes com status 'aprovado'.
+        $cidades = Cidade::where('estado_id', $estado->id)
+                         ->whereHas('acompanhantes', function ($query) {
+                             $query->where('status', 'aprovado');
+                         })
+                         ->orderBy('nome')
+                         ->get();
         
         return response()->json($cidades);
     }

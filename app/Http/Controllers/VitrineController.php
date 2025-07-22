@@ -4,23 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Models\Acompanhante;
 use App\Models\Servico;
-use App\Models\Cidade; // Usa o Model Cidade
+use App\Models\Cidade;
+use App\Models\Estado; // Importa o Model Estado
 use Illuminate\Http\Request;
 
 class VitrineController extends Controller
 {
     /**
-     * Lista as cidades que têm perfis aprovados para a página inicial.
+     * Lista os ESTADOS que têm perfis aprovados para a página inicial.
      */
     public function listarCidades()
     {
-        // LÓGICA CORRIGIDA: Busca Cidades que têm uma relação 'acompanhantes'
-        // onde pelo menos um acompanhante tem o status 'aprovado'.
-        $cidades = Cidade::whereHas('acompanhantes', function ($query) {
+        // LÓGICA ATUALIZADA: Busca Estados que têm cidades com acompanhantes aprovadas.
+        // Isso garante que só aparecerão estados com perfis ativos.
+        $estados = Estado::whereHas('cidades.acompanhantes', function ($query) {
             $query->where('status', 'aprovado');
         })->orderBy('nome')->get();
 
-        return view('cidades', ['cidades' => $cidades]);
+        // A view 'cidades' agora receberá a lista de estados.
+        return view('cidades', ['estados' => $estados]);
     }
 
     /**
