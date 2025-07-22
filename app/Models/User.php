@@ -39,39 +39,46 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Acompanhante::class);
     }
 
-    public function assinatura(): HasOne
+    // --- RELAÇÃO CORRIGIDA PARA PEGAR A ASSINATURA ATIVA ---
+    public function assinaturaAtiva(): HasOne
     {
-        return $this->hasOne(Assinatura::class);
+        return $this->hasOne(Assinatura::class)
+                    ->where('status', 'ativa')
+                    ->where('data_fim', '>', now());
     }
+    // --- FIM DA CORREÇÃO ---
 
     public function media(): HasMany
     {
         return $this->hasMany(Media::class);
     }
 
-    /**
-     * Retorna o limite de fotos que este usuário pode ter na galeria,
-     * baseado na sua assinatura ativa.
-     */
     public function getPhotoLimit(): int
     {
-        // Carrega a assinatura ativa (que não expirou) e o seu plano.
-        $assinaturaAtiva = $this->assinatura()->with('plano')
-                                ->where('status', 'ativa')
-                                ->where('data_fim', '>', now())
-                                ->first();
-
-        // Se encontrar uma assinatura ativa, retorna o limite do plano.
-        if ($assinaturaAtiva) {
-            return $assinaturaAtiva->plano->limite_fotos;
+        // Agora usa a relação 'assinaturaAtiva'
+        if ($this->assinaturaAtiva && $this->assinaturaAtiva->plano) {
+            return $this->assinaturaAtiva->plano->limite_fotos;
         }
 
-        // Se não, busca o limite do plano Grátis no banco de dados.
+        // Se não, busca o limite do plano Grátis.
         $planoGratis = Plano::where('slug', 'gratis')->first();
-        
-        // Retorna o limite do plano grátis, ou 4 como um padrão de segurança.
         return $planoGratis ? $planoGratis->limite_fotos : 4;
     }
+
+    // --- NOVO MÉTODO getVideoLimit ADICIONADO ---
+    public function getVideoLimit(): int
+    {
+        // Usa a mesma lógica da assinatura ativa
+        if ($this->assinaturaAtiva && $this->assinaturaAtiva->plano) {
+            return $this->assinaturaAtiva->plano->limite_videos;
+        }
+        
+        // Se não tiver assinatura ativa, busca o limite do plano Grátis.
+        $planoGratis = Plano::where('slug', 'gratis')->first();
+        return $planoGratis ? $planoGratis->limite_videos : 0; // Padrão 0 para vídeos no plano grátis
+    }
+    // --- FIM DO NOVO MÉTODO ---
+
 
     public function getPrivateAvatarUrlAttribute(): string
     {

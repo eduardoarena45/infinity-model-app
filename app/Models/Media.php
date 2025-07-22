@@ -11,6 +11,13 @@ class Media extends Model
     use HasFactory;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'midias';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -20,10 +27,11 @@ class Media extends Model
         'path',
         'type',
         'status',
+        'thumbnail_path',
     ];
 
     /**
-     * Define o relacionamento inverso: Uma Mídia pertence a um Usuário.
+     * Defines the inverse relationship: A Media belongs to a User.
      */
     public function user(): BelongsTo
     {

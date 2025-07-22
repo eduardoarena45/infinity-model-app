@@ -8,15 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Renomeei a tabela para 'media' (singular) para seguir a convenção do Laravel
-        Schema::create('media', function (Blueprint $table) {
+        // CORREÇÃO: O nome da tabela agora é 'midias' (plural)
+        Schema::create('midias', function (Blueprint $table) {
             $table->id();
-            // Coluna renomeada para 'user_id'
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            // Coluna renomeada para 'path'
             $table->string('path');
             $table->string('type')->default('image');
-            // ADICIONADA a coluna 'status', que era a mais importante
             $table->string('status')->default('pendente');
             $table->timestamps();
         });
@@ -24,6 +21,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('media');
+        // CORREÇÃO: O nome da tabela agora é 'midias' (plural)
+        Schema::dropIfExists('midias');
     }
 };

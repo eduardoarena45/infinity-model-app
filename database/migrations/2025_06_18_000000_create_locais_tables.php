@@ -11,8 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // --- CÓDIGO TEMPORARIAMENTE COMENTADO ---
-        /*
         // Cria a tabela de Estados
         Schema::create('estados', function (Blueprint $table) {
             $table->id();
@@ -26,8 +24,6 @@ return new class extends Migration
             $table->foreignId('estado_id')->constrained('estados')->onDelete('cascade');
             $table->string('nome');
         });
-        */
-        // --- FIM DO CÓDIGO COMENTADO ---
     }
 
     /**

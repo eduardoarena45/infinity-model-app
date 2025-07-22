@@ -6,7 +6,6 @@
     <div class="container mx-auto px-4">
         <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
 
-            <!-- CABEÇALHO DO PERFIL -->
             <div class="relative">
                 <div class="h-48 bg-gray-200 dark:bg-gray-700 bg-cover bg-center" style="background-image: url('<?php echo e($acompanhante->foto_principal_url); ?>');">
                     <div class="h-full w-full bg-black bg-opacity-50 backdrop-blur-md"></div>
@@ -18,8 +17,7 @@
                 </div>
             </div>
 
-            <!-- INFORMAÇÕES PRINCIPAIS E BOTÃO DE CONTATO -->
-            <div class="pt-20 md:pt-8 pb-8 px-8">
+            <div class="pt-20 md:pt-8 pb-8 px-4 sm:px-8">
                 <div class="text-center md:text-left md:ml-48">
                     <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center justify-center md:justify-start gap-x-2">
                         <span><?php echo e($acompanhante->nome_artistico); ?></span>
@@ -41,14 +39,12 @@
                 </div>
             </div>
 
-            <div class="p-8 space-y-12">
-                <!-- Seção Sobre -->
+            <div class="p-4 sm:p-8 space-y-12">
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Sobre mim</h3>
-                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed"><?php echo e($acompanhante->descricao); ?></p>
+                    <p class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap"><?php echo e($acompanhante->descricao); ?></p>
                 </section>
 
-                <!-- Seção Serviços -->
                 <?php if($acompanhante->servicos->isNotEmpty()): ?>
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Serviços</h3>
@@ -60,23 +56,38 @@
                 </section>
                 <?php endif; ?>
 
-                <!-- Seção Galeria -->
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Galeria</h3>
                     <?php if($acompanhante->midias->where('status', 'aprovado')->isNotEmpty()): ?>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                             <?php $__currentLoopData = $acompanhante->midias->where('status', 'aprovado'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $midia): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <a href="<?php echo e(Storage::url($midia->path)); ?>" data-fancybox="gallery" data-caption="<?php echo e($acompanhante->nome_artistico); ?>">
-                                    <img src="<?php echo e(Storage::url($midia->path)); ?>" class="rounded-lg object-cover w-full h-48 hover:opacity-80 transition-opacity shadow-md" alt="Foto da galeria">
-                                </a>
+                                
+                                
+                                <?php if($midia->type === 'image'): ?>
+                                    <a href="<?php echo e(Storage::url($midia->path)); ?>" data-fancybox="gallery" data-caption="<?php echo e($acompanhante->nome_artistico); ?>">
+                                        <img src="<?php echo e(Storage::url($midia->path)); ?>" class="rounded-lg object-cover w-full h-48 hover:opacity-80 transition-opacity shadow-md" alt="Foto da galeria">
+                                    </a>
+                                
+                                
+                                <?php elseif($midia->type === 'video' && $midia->thumbnail_path): ?>
+                                    <a href="<?php echo e(Storage::url($midia->path)); ?>" data-fancybox="gallery" data-caption="<?php echo e($acompanhante->nome_artistico); ?>">
+                                        <div class="relative w-full h-48 bg-black rounded-lg shadow-md group">
+                                            <img src="<?php echo e(Storage::url($midia->thumbnail_path)); ?>" class="w-full h-full object-cover rounded-lg group-hover:opacity-80 transition-opacity" alt="Capa do vídeo">
+                                            <div class="absolute inset-0 flex items-center justify-center">
+                                                <div class="bg-black bg-opacity-50 rounded-full p-3">
+                                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                <?php endif; ?>
+
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     <?php else: ?>
-                        <p class="text-gray-500 text-center">Nenhuma foto na galeria ainda.</p>
+                        <p class="text-gray-500 text-center">Nenhuma mídia na galeria ainda.</p>
                     <?php endif; ?>
                 </section>
-
-                <!-- Seção Avaliações -->
                 
             </div>
         </div>
@@ -86,5 +97,4 @@
     </div>
 </div>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.public', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\infinity_model_app\resources\views/perfil.blade.php ENDPATH**/ ?>

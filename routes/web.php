@@ -45,6 +45,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/minha-galeria', [ProfileController::class, 'gerirGaleria'])->name('galeria.gerir');
     Route::post('/galeria', [ProfileController::class, 'uploadGaleria'])->name('galeria.upload');
+    
+    // --- ROTA DE VÍDEO ADICIONADA AQUI ---
+    Route::post('/galeria/videos', [ProfileController::class, 'uploadVideo'])->name('galeria.upload.video');
+    
     Route::delete('/galeria/{media}', [ProfileController::class, 'destroyMidia'])->name('galeria.destroy');
 
     Route::get('/escolher-plano', [PlanoController::class, 'selecionar'])->name('planos.selecionar');
