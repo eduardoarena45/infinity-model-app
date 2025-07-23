@@ -3,8 +3,11 @@
 
 @section('content')
     <div class="container mx-auto px-2 sm:px-4 py-12">
-        <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white my-2">Perfis em <span class="text-[--color-accent]">{{ $cidadeNome }}</span></h1>
-        <div class="text-center mb-8"><a href="{{ route('cidades.index') }}" class="text-[--color-primary] dark:text-[--color-accent] hover:underline">&larr; Trocar de cidade</a></div>
+        {{-- LINHA ALTERADA --}}
+        <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white my-2">Perfis em <span class="text-blue-500">{{ $cidadeNome }}</span></h1>
+        
+        {{-- LINHA ALTERADA --}}
+        <div class="text-center mb-8"><a href="{{ route('cidades.index') }}" class="text-blue-600 dark:text-blue-500 hover:underline">&larr; Trocar de cidade</a></div>
 
         {{-- SISTEMA DE FILTROS --}}
         <div x-data="{ open: false }" class="mb-12 max-w-4xl mx-auto">
@@ -39,7 +42,6 @@
         @if($destaques->isNotEmpty())
             <div class="mb-16">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">✨ Destaques</h2>
-                {{-- ALTERAÇÃO: Grade de 3 colunas para celular --}}
                 <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
                     @foreach ($destaques as $perfil)
                         @include('partials.acompanhante-card', ['perfil' => $perfil, 'isDestaque' => true])
@@ -50,7 +52,6 @@
 
         {{-- SEÇÃO DE OUTROS PERFIS --}}
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Outros Perfis</h2>
-        {{-- ALTERAÇÃO: Grade de 3 colunas para celular --}}
         <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
             @forelse ($acompanhantes as $perfil)
                 @include('partials.acompanhante-card', ['perfil' => $perfil, 'isDestaque' => false])

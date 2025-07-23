@@ -2,8 +2,11 @@
 
 <?php $__env->startSection('content'); ?>
     <div class="container mx-auto px-2 sm:px-4 py-12">
-        <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white my-2">Perfis em <span class="text-[--color-accent]"><?php echo e($cidadeNome); ?></span></h1>
-        <div class="text-center mb-8"><a href="<?php echo e(route('cidades.index')); ?>" class="text-[--color-primary] dark:text-[--color-accent] hover:underline">&larr; Trocar de cidade</a></div>
+        
+        <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white my-2">Perfis em <span class="text-blue-500"><?php echo e($cidadeNome); ?></span></h1>
+        
+        
+        <div class="text-center mb-8"><a href="<?php echo e(route('cidades.index')); ?>" class="text-blue-600 dark:text-blue-500 hover:underline">&larr; Trocar de cidade</a></div>
 
         
         <div x-data="{ open: false }" class="mb-12 max-w-4xl mx-auto">
@@ -38,7 +41,6 @@
         <?php if($destaques->isNotEmpty()): ?>
             <div class="mb-16">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">✨ Destaques</h2>
-                
                 <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
                     <?php $__currentLoopData = $destaques; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $perfil): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <?php echo $__env->make('partials.acompanhante-card', ['perfil' => $perfil, 'isDestaque' => true], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -49,7 +51,6 @@
 
         
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Outros Perfis</h2>
-        
         <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
             <?php $__empty_1 = true; $__currentLoopData = $acompanhantes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $perfil): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <?php echo $__env->make('partials.acompanhante-card', ['perfil' => $perfil, 'isDestaque' => false], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>

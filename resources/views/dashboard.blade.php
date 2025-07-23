@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
-            {{-- INÍCIO DO STATUS BOX CORRIGIDO PARA O MODO ESCURO --}}
+            {{-- STATUS BOX --}}
             @switch($acompanhante->status ?? 'pendente')
                 
                 @case('aprovado')
@@ -60,38 +60,17 @@
                     @break
 
             @endswitch
-            {{-- FIM DO STATUS BOX CORRIGIDO --}}
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 md:p-8 text-gray-900 dark:text-gray-100">
                     
-                    <h3 class="text-2xl font-bold mb-2">Olá, {{ Auth::user()->name }}!</h3>
-                    <p class="text-md text-gray-600 dark:text-gray-400 mb-6">Veja como seu perfil está aparecendo na vitrine para os clientes.</p>
+                    {{-- LINHA ALTERADA PARA USAR O NOME ARTÍSTICO --}}
+                    <h3 class="text-2xl font-bold">Olá, {{ $acompanhante->nome_artistico ?? Auth::user()->name }}!</h3>
+                    
+                    <p class="mt-2 text-gray-600 dark:text-gray-400">Bem-vinda ao seu painel de controle. Use o menu à esquerda para gerenciar seu perfil, galeria e plano.</p>
+                    
+                    {{-- O BLOCO DE BOTÕES FOI REMOVIDO DESTA ÁREA --}}
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-                        
-                        <div class="md:col-span-1">
-                            @include('partials.acompanhante-card', ['perfil' => $acompanhante, 'isDestaque' => $acompanhante->is_featured])
-                        </div>
-
-                        <div class="md:col-span-2 flex flex-col space-y-4">
-                            <p class="text-center text-gray-500 dark:text-gray-400">O que você gostaria de fazer agora?</p>
-                            
-                            <a href="{{ route('profile.edit') }}" class="w-full text-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-transform hover:scale-105">
-                                Editar Perfil Completo
-                            </a>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <a href="{{ route('galeria.gerir') }}" class="w-full text-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                    Gerir Galeria de Fotos
-                                </a>
-                                <a href="{{ route('planos.selecionar') }}" class="w-full text-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-base font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                    Ver Meu Plano
-                                </a>
-                            </div>
-                        </div>
-
-                    </div>
                 </div>
             </div>
         </div>
