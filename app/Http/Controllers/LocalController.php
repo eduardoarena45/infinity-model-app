@@ -15,13 +15,9 @@ class LocalController extends Controller
      */
     public function getCidadesPorEstado(Estado $estado): JsonResponse
     {
-        // LÓGICA CORRIGIDA: Busca apenas cidades do estado que têm acompanhantes com status 'aprovado'.
-        $cidades = Cidade::where('estado_id', $estado->id)
-                         ->whereHas('acompanhantes', function ($query) {
-                             $query->where('status', 'aprovado');
-                         })
-                         ->orderBy('nome')
-                         ->get();
+        // CORREÇÃO: A lógica agora busca TODAS as cidades do estado, sem filtros.
+        // Isso permite que a acompanhante selecione qualquer cidade que o admin cadastrou.
+        $cidades = $estado->cidades()->orderBy('nome')->get();
         
         return response()->json($cidades);
     }
