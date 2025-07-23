@@ -24,10 +24,13 @@ Route::get('/politica-de-privacidade', function () {
     return view('legal.privacidade');
 })->name('privacidade');
 
-// ROTAS PÚBLICAS QUE ESTAVAM A FALTAR
 Route::get('/vitrine/{cidade}', [VitrineController::class, 'mostrarPorCidade'])->name('vitrine.por.cidade');
 Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('vitrine.show');
 Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
+
+// --- ROTA DA API DE CIDADES (AGORA É PÚBLICA) ---
+// Esta rota foi movida para fora do grupo 'auth' para que todos possam acessá-la.
+Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstado'])->name('api.cidades');
 
 
 // --- ROTAS PRIVADAS (PARA UTILIZADORAS LOGADAS) ---
@@ -45,17 +48,14 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/minha-galeria', [ProfileController::class, 'gerirGaleria'])->name('galeria.gerir');
     Route::post('/galeria', [ProfileController::class, 'uploadGaleria'])->name('galeria.upload');
-    
-    // --- ROTA DE VÍDEO ADICIONADA AQUI ---
     Route::post('/galeria/videos', [ProfileController::class, 'uploadVideo'])->name('galeria.upload.video');
-    
     Route::delete('/galeria/{media}', [ProfileController::class, 'destroyMidia'])->name('galeria.destroy');
 
     Route::get('/escolher-plano', [PlanoController::class, 'selecionar'])->name('planos.selecionar');
     Route::post('/assinar-plano/{plano}', [PlanoController::class, 'assinar'])->name('planos.assinar');
     Route::get('/planos/pagamento/{assinatura}', [PlanoController::class, 'mostrarPagamento'])->name('planos.pagamento');
 
-    Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstado'])->name('api.cidades');
+    // A rota da API de cidades foi removida daqui.
 });
 
 

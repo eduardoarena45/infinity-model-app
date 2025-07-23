@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Acompanhante;
 use App\Models\Servico;
 use App\Models\Cidade;
-use App\Models\Estado; // Importa o Model Estado
+use App\Models\Estado;
 use Illuminate\Http\Request;
 
 class VitrineController extends Controller
@@ -15,13 +15,10 @@ class VitrineController extends Controller
      */
     public function listarCidades()
     {
-        // LÓGICA ATUALIZADA: Busca Estados que têm cidades com acompanhantes aprovadas.
-        // Isso garante que só aparecerão estados com perfis ativos.
         $estados = Estado::whereHas('cidades.acompanhantes', function ($query) {
             $query->where('status', 'aprovado');
         })->orderBy('nome')->get();
 
-        // A view 'cidades' agora receberá a lista de estados.
         return view('cidades', ['estados' => $estados]);
     }
 
@@ -30,7 +27,6 @@ class VitrineController extends Controller
      */
     public function mostrarPorCidade(Request $request, string $cidadeNome)
     {
-        // LÓGICA CORRIGIDA: A query agora busca pela relação com a cidade
         $baseQuery = Acompanhante::query()
             ->whereHas('cidade', function ($query) use ($cidadeNome) {
                 $query->where('nome', $cidadeNome);
@@ -44,7 +40,6 @@ class VitrineController extends Controller
             });
         }
 
-        // Ordena para que os perfis em destaque apareçam primeiro
         $destaques = (clone $baseQuery)->where('is_featured', true)->latest()->get();
         $acompanhantesNormais = (clone $baseQuery)->where('is_featured', false)->latest()->paginate(12)->withQueryString();
         
@@ -67,7 +62,7 @@ class VitrineController extends Controller
         if ($acompanhante->status !== 'aprovado') {
             abort(404);
         }
-        $acompanhante->load('servicos', 'midias', 'avaliacoes.user');
+        $acompanhante->load('servicos', 'midias', 'avaliacoes');
         return view('perfil', ['acompanhante' => $acompanhante]);
     }
 
@@ -76,17 +71,22 @@ class VitrineController extends Controller
      */
     public function storeAvaliacao(Request $request, Acompanhante $acompanhante)
     {
+        // 1. Valida todos os campos do formulário
         $request->validate([
+            'nome_avaliador' => 'required|string|max:255',
             'nota' => 'required|integer|min:1|max:5',
             'comentario' => 'required|string|max:1000',
         ]);
 
+        // 2. Cria a avaliação com todos os dados corretos para moderação
         $acompanhante->avaliacoes()->create([
-            'user_id' => auth()->id(), // Garante que apenas usuários logados avaliem
+            'nome_avaliador' => $request->nome_avaliador, // <-- Campo que estava faltando
             'nota' => $request->nota,
             'comentario' => $request->comentario,
+            'status' => 'pendente', // <-- Salva como pendente
+            'ip_address' => $request->ip(), // <-- Salva o IP
         ]);
 
-        return back()->with('success', 'Sua avaliação foi enviada com sucesso!');
+        return back()->with('success', 'Sua avaliação foi enviada para moderação. Obrigado!');
     }
 }

@@ -52,12 +52,12 @@
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Serviços</h3>
                     <div class="flex flex-wrap gap-3">
                         @foreach($acompanhante->servicos as $servico)
-                            {{-- A LINHA ABAIXO FOI ALTERADA PARA O ESTILO MAIS ELEGANTE --}}
                             <span class="text-gray-300 text-sm font-medium px-3 py-1 border border-gray-600 rounded-full">{{ $servico->nome }}</span>
                         @endforeach
                     </div>
                 </section>
                 @endif
+                
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Galeria</h3>
                     @if($acompanhante->midias->where('status', 'aprovado')->isNotEmpty())
@@ -89,7 +89,72 @@
                     @endif
                 </section>
                 
-                {{-- ... seu código de avaliações ... --}}
+                <section>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Avaliações de Clientes</h3>
+
+                    {{-- Exibe mensagem de sucesso após enviar avaliação --}}
+                    @if(session('success'))
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
+                    {{-- Formulário para deixar uma nova avaliação --}}
+                    <div class="bg-gray-50 dark:bg-gray-700/50 p-4 sm:p-6 rounded-lg mb-8">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Deixe sua avaliação anônima</h4>
+                        <form action="{{ route('avaliacoes.store', $acompanhante->id) }}" method="POST">
+                            @csrf
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="nome_avaliador" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Seu Nome (será público)</label>
+                                    <input type="text" name="nome_avaliador" id="nome_avaliador" required maxlength="50" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-800 focus:border-indigo-500 focus:ring-indigo-500">
+                                    @error('nome_avaliador') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label for="comentario" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Seu Comentário</label>
+                                    <textarea name="comentario" id="comentario" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-800 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                                    @error('comentario') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                {{-- Sistema de Estrelas Interativo --}}
+                                <div>
+                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sua Nota</label>
+                                     <div class="flex flex-row-reverse justify-end items-center">
+                                        @for ($i = 5; $i >= 1; $i--)
+                                            <input type="radio" id="nota-{{$i}}" name="nota" value="{{$i}}" class="sr-only peer" required>
+                                            <label for="nota-{{$i}}" class="text-gray-300 dark:text-gray-600 cursor-pointer text-3xl peer-hover:text-yellow-400 peer-checked:text-yellow-400 hover:text-yellow-400">★</label>
+                                        @endfor
+                                     </div>
+                                     @error('nota') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Enviar Avaliação
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {{-- Lista de avaliações já aprovadas --}}
+                    <div class="space-y-6">
+                        @forelse($acompanhante->avaliacoes->where('status', 'aprovado') as $avaliacao)
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                                <div class="flex items-center mb-2">
+                                    <p class="font-bold text-gray-900 dark:text-white">{{ $avaliacao->nome_avaliador }}</p>
+                                    <div class="flex items-center ml-4">
+                                         @for ($i = 1; $i <= 5; $i++)
+                                            <svg class="w-5 h-5 {{ $i <= $avaliacao->nota ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                         @endfor
+                                    </div>
+                                </div>
+                                <p class="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{{ $avaliacao->comentario }}</p>
+                            </div>
+                        @empty
+                            <p class="text-gray-500 dark:text-gray-400 text-center py-4">Este perfil ainda não tem avaliações. Seja o primeiro a comentar!</p>
+                        @endforelse
+                    </div>
+                </section>
+
             </div>
         </div>
         <div class="text-center mt-8">

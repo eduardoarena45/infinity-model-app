@@ -12,18 +12,24 @@ class Avaliacao extends Model
 
     /**
      * O nome da tabela associada com o modelo.
-     * Isto corrige o erro, forçando o Laravel a usar 'avaliacoes'.
-     * @var string
      */
     protected $table = 'avaliacoes';
 
+    /**
+     * Os atributos que podem ser atribuídos em massa.
+     */
     protected $fillable = [
         'acompanhante_id',
-        'nome_autor',
+        'nome_avaliador', // <-- CORRIGIDO
         'nota',
         'comentario',
+        'status',         // <-- ADICIONADO
+        'ip_address',     // <-- ADICIONADO
     ];
 
+    /**
+     * Define o relacionamento com a Acompanhante.
+     */
     public function acompanhante(): BelongsTo
     {
         return $this->belongsTo(Acompanhante::class);
