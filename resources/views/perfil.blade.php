@@ -6,8 +6,18 @@
 
 <div class="bg-gray-100 dark:bg-gray-900 py-12">
     <div class="container mx-auto px-4">
-        <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
 
+        {{-- BOTÃO VOLTAR NO TOPO --}}
+        <div class="max-w-4xl mx-auto mb-4">
+            <a href="javascript:history.back()" class="inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+                Voltar para a vitrine
+            </a>
+        </div>
+
+        <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
             <div class="relative">
                 <div class="h-48 bg-gray-200 dark:bg-gray-700 bg-cover bg-center" style="background-image: url('{{ $acompanhante->foto_principal_url }}');">
                     <div class="h-full w-full bg-black bg-opacity-50 backdrop-blur-md"></div>
@@ -63,12 +73,10 @@
                     @if($acompanhante->midias->where('status', 'aprovado')->isNotEmpty())
                         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                             @foreach($acompanhante->midias->where('status', 'aprovado') as $midia)
-                                
                                 @if($midia->type === 'image')
                                     <a href="{{ Storage::url($midia->path) }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
                                         <img src="{{ Storage::url($midia->path) }}" class="rounded-lg object-cover w-full h-48 hover:opacity-80 transition-opacity shadow-md" alt="Foto da galeria">
                                     </a>
-                                
                                 @elseif($midia->type === 'video' && $midia->thumbnail_path)
                                     <a href="{{ Storage::url($midia->path) }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
                                         <div class="relative w-full h-48 bg-black rounded-lg shadow-md group">
@@ -81,7 +89,6 @@
                                         </div>
                                     </a>
                                 @endif
-
                             @endforeach
                         </div>
                     @else
@@ -91,15 +98,9 @@
                 
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Avaliações de Clientes</h3>
-
-                    {{-- Exibe mensagem de sucesso após enviar avaliação --}}
                     @if(session('success'))
-                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
-                            {{ session('success') }}
-                        </div>
+                        <div class="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">{{ session('success') }}</div>
                     @endif
-
-                    {{-- Formulário para deixar uma nova avaliação --}}
                     <div class="bg-gray-50 dark:bg-gray-700/50 p-4 sm:p-6 rounded-lg mb-8">
                         <h4 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Deixe sua avaliação anônima</h4>
                         <form action="{{ route('avaliacoes.store', $acompanhante->id) }}" method="POST">
@@ -115,8 +116,6 @@
                                     <textarea name="comentario" id="comentario" rows="3" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm dark:bg-gray-800 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                                     @error('comentario') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
-                                
-                                {{-- Sistema de Estrelas Interativo --}}
                                 <div>
                                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sua Nota</label>
                                      <div class="flex flex-row-reverse justify-end items-center">
@@ -127,15 +126,10 @@
                                      </div>
                                      @error('nota') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
-                                
-                                <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    Enviar Avaliação
-                                </button>
+                                <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Enviar Avaliação</button>
                             </div>
                         </form>
                     </div>
-
-                    {{-- Lista de avaliações já aprovadas --}}
                     <div class="space-y-6">
                         @forelse($acompanhante->avaliacoes->where('status', 'aprovado') as $avaliacao)
                             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
@@ -154,11 +148,11 @@
                         @endforelse
                     </div>
                 </section>
-
             </div>
         </div>
+        
         <div class="text-center mt-8">
-            <a href="{{ url()->previous() }}" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">&larr; Voltar</a>
+            <a href="javascript:history.back()" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">&larr; Voltar</a>
         </div>
     </div>
 </div>
