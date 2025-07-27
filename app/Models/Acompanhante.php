@@ -82,4 +82,13 @@ class Acompanhante extends Model
     {
         return $this->hasMany(Avaliacao::class);
     }
+
+    /**
+     * Get all of the profile views for the Acompanhante.
+     * ESTA É A NOVA FUNÇÃO PARA AS ESTATÍSTICAS
+     */
+    public function profileViews(): HasMany
+    {
+        return $this->hasMany(ProfileView::class);
+    }
 }

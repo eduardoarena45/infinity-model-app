@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VitrineController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon; // Adicione esta linha
 
 /*
 |--------------------------------------------------------------------------
@@ -36,10 +37,41 @@ Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstad
 // --- ROTAS PRIVADAS (PARA UTILIZADORAS LOGADAS) ---
 Route::middleware('auth')->group(function () {
     
+    // ROTA DO DASHBOARD ATUALIZADA COM A LÓGICA DAS ESTATÍSTICAS
     Route::get('/dashboard', function () {
         $user = Auth::user();
         $acompanhante = $user->acompanhante()->with('cidade', 'avaliacoes')->firstOrCreate([]);
-        return view('dashboard', ['acompanhante' => $acompanhante]);
+
+        // --- LÓGICA DAS ESTATÍSTICAS ---
+        $viewsToday = $acompanhante->profileViews()->whereDate('created_at', Carbon::today())->count();
+        $viewsThisMonth = $acompanhante->profileViews()->whereMonth('created_at', Carbon::now()->month)->count();
+        $totalViews = $acompanhante->profileViews()->count();
+
+        // Dados para o gráfico (últimos 7 dias)
+        $viewsLast7Days = $acompanhante->profileViews()
+            ->where('created_at', '>=', Carbon::now()->subDays(7))
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->get()
+            ->pluck('count', 'date');
+        
+        // Preencher os dias sem visualizações com 0
+        $chartData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->format('Y-m-d');
+            $chartData['labels'][] = Carbon::parse($date)->format('d/m');
+            $chartData['data'][] = $viewsLast7Days->get($date, 0);
+        }
+        // --- FIM DA LÓGICA ---
+
+        return view('dashboard', [
+            'acompanhante' => $acompanhante,
+            'viewsToday' => $viewsToday,
+            'viewsThisMonth' => $viewsThisMonth,
+            'totalViews' => $totalViews,
+            'chartData' => $chartData, // Passa os dados do gráfico para a view
+        ]);
     })->name('dashboard');
 
     Route::get('/meu-perfil', [ProfileController::class, 'edit'])->name('profile.edit');

@@ -52,7 +52,7 @@ class VitrineController extends Controller
             'cidadeNome' => $cidadeNome,
             'servicos' => $servicos,
             'servicosSelecionados' => $request->input('servicos', []),
-            'genero' => $genero, // <-- ADICIONE ESTA LINHA
+            'genero' => $genero,
         ]);
     }
 
@@ -64,6 +64,10 @@ class VitrineController extends Controller
         if ($acompanhante->status !== 'aprovado') {
             abort(404);
         }
+
+        // Adiciona esta linha para registar a visualização do perfil
+        $acompanhante->profileViews()->create();
+
         $acompanhante->load('servicos', 'midias', 'avaliacoes');
         return view('perfil', ['acompanhante' => $acompanhante]);
     }
@@ -82,7 +86,7 @@ class VitrineController extends Controller
 
         // 2. Cria a avaliação com todos os dados corretos para moderação
         $acompanhante->avaliacoes()->create([
-            'nome_avaliador' => $request->nome_avaliador, // <-- Campo que estava faltando
+            'nome_avaliador' => $request->nome_avaliador,
             'nota' => $request->nota,
             'comentario' => $request->comentario,
             'status' => 'pendente', // <-- Salva como pendente

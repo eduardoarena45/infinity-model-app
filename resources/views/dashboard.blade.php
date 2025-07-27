@@ -8,6 +8,34 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             
+            {{-- Início do Bloco de Estatísticas --}}
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">Suas Estatísticas</h2>
+                
+                {{-- Cards de Estatísticas --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Visualizações Hoje</h3>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $viewsToday }}</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Visualizações este Mês</h3>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $viewsThisMonth }}</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                        <h3 class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total de Visualizações</h3>
+                        <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $totalViews }}</p>
+                    </div>
+                </div>
+
+                {{-- Gráfico de Visualizações --}}
+                <div class="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Visualizações nos Últimos 7 Dias</h3>
+                    <canvas id="viewsChart"></canvas>
+                </div>
+            </div>
+            {{-- Fim do Bloco de Estatísticas --}}
+
             {{-- STATUS BOX --}}
             @switch($acompanhante->status ?? 'pendente')
                 
@@ -75,4 +103,45 @@
             </div>
         </div>
     </div>
+
+    {{-- Adicione este script no final do ficheiro --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('viewsChart').getContext('2d');
+            const chartData = @json($chartData);
+
+            new Chart(ctx, {
+                type: 'bar', // ou 'line' para um gráfico de linha
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Visualizações por Dia',
+                        data: chartData.data,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                // Garante que só mostra números inteiros no eixo Y
+                                precision: 0 
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // Esconde a legenda para um visual mais limpo
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </x-app-layout>
