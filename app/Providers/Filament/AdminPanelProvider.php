@@ -17,6 +17,9 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+// Adicione as duas linhas 'use' abaixo
+use Illuminate\Contracts\View\View;
+use Filament\Support\Facades\FilamentView;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -27,12 +30,17 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('guns') 
             ->login()
-            // NOVA LINHA: Muda o nome "Laravel" para "Infinity Model"
+            // Muda o nome "Laravel" para "Infinity Model"
             ->brandName('Infinity Model')
-            // COR ALTERADA: Muda a cor primária de Amarelo para Azul
+            // Muda a cor primária para Azul
             ->colors([
                 'primary' => Color::Blue,
             ])
+            // Adiciona o Favicon no <head> do painel
+            ->renderHook(
+                'panels::head.end',
+                fn (): View => view('partials.favicon'),
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

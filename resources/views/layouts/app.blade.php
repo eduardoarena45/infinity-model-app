@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
-        <meta charset="utf-t">
+        <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ config('app.name', 'Laravel') }} - Painel</title>
+
+        <!-- Bloco de Favicons Completo -->
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/favicon-32x32.png') }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon/favicon-16x16.png') }}">
+        <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}">
+        <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}">
+        <!-- Fim do Bloco de Favicons -->
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
         <style>
             :root {
                 --color-primary: #4E2A51; 
@@ -37,7 +46,7 @@
                 <nav class="px-2 space-y-1">
                     @php
                         $navLinks = [
-                            'dashboard' => 'Status', // <-- LINHA ALTERADA AQUI
+                            'dashboard' => 'Status',
                             'profile.edit' => 'Editar Perfil',
                             'galeria.gerir' => 'Gerir Galeria',
                             'planos.selecionar' => 'Meu Plano',
