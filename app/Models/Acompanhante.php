@@ -19,6 +19,7 @@ class Acompanhante extends Model
     protected $fillable = [
         'user_id',
         'nome_artistico',
+        'genero',
         'foto_principal_path',
         'data_nascimento',
         'cidade_id',

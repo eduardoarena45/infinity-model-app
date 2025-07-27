@@ -25,9 +25,10 @@ class VitrineController extends Controller
     /**
      * Mostra a vitrine de uma cidade específica.
      */
-    public function mostrarPorCidade(Request $request, string $cidadeNome)
+    public function mostrarPorCidade(Request $request, string $genero, string $cidadeNome)
     {
         $baseQuery = Acompanhante::query()
+            ->where('genero', $genero) // <-- NOVO FILTRO DE GÊNERO
             ->whereHas('cidade', function ($query) use ($cidadeNome) {
                 $query->where('nome', $cidadeNome);
             })
@@ -51,6 +52,7 @@ class VitrineController extends Controller
             'cidadeNome' => $cidadeNome,
             'servicos' => $servicos,
             'servicosSelecionados' => $request->input('servicos', []),
+            'genero' => $genero, // <-- ADICIONE ESTA LINHA
         ]);
     }
 

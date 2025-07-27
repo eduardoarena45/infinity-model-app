@@ -3,10 +3,24 @@
 
 @section('content')
     <div class="container mx-auto px-2 sm:px-4 py-12">
-        {{-- LINHA ALTERADA --}}
         <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white my-2">Perfis em <span class="text-blue-500">{{ $cidadeNome }}</span></h1>
         
-        {{-- LINHA ALTERADA --}}
+        {{-- NAVEGAÇÃO DE CATEGORIAS --}}
+        <div class="flex justify-center space-x-4 sm:space-x-8 my-8 text-lg">
+            <a href="{{ route('vitrine.por.cidade', ['genero' => 'mulher', 'cidade' => $cidadeNome]) }}"
+               class="{{ $genero == 'mulher' ? 'text-blue-500 font-bold border-b-2 border-blue-500 pb-1' : 'text-gray-500 dark:text-gray-400' }}">
+               Mulheres
+            </a>
+            <a href="{{ route('vitrine.por.cidade', ['genero' => 'homem', 'cidade' => $cidadeNome]) }}"
+               class="{{ $genero == 'homem' ? 'text-blue-500 font-bold border-b-2 border-blue-500 pb-1' : 'text-gray-500 dark:text-gray-400' }}">
+               Homens
+            </a>
+            <a href="{{ route('vitrine.por.cidade', ['genero' => 'trans', 'cidade' => $cidadeNome]) }}"
+               class="{{ $genero == 'trans' ? 'text-blue-500 font-bold border-b-2 border-blue-500 pb-1' : 'text-gray-500 dark:text-gray-400' }}">
+               Trans
+            </a>
+        </div>
+
         <div class="text-center mb-8"><a href="{{ route('cidades.index') }}" class="text-blue-600 dark:text-blue-500 hover:underline">&larr; Trocar de cidade</a></div>
 
         {{-- SISTEMA DE FILTROS --}}
@@ -22,7 +36,7 @@
             <div x-show="open" x-cloak class="mt-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
                  x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-2" x-transition:enter-end="opacity-100 transform translate-y-0"
                  x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform -translate-y-2">
-                <form action="{{ route('vitrine.por.cidade', $cidadeNome) }}" method="GET">
+                <form action="{{ route('vitrine.por.cidade', ['genero' => $genero, 'cidade' => $cidadeNome]) }}" method="GET">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         @foreach($servicos as $servico)
                         <label class="flex items-center">

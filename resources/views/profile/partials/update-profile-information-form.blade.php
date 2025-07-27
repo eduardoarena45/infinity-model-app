@@ -52,6 +52,17 @@
             <x-input-error class="mt-2" :messages="$errors->get('nome_artistico')" />
         </div>
 
+        <div>
+            <x-input-label for="genero" value="Gênero" />
+                <select id="genero" name="genero" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 rounded-md shadow-sm mt-1 block w-full" required>
+                <option value="">Selecione...</option>
+                <option value="mulher" @if(old('genero', $acompanhante->genero) == 'mulher') selected @endif>Mulher</option>
+                <option value="homem" @if(old('genero', $acompanhante->genero) == 'homem') selected @endif>Homem</option>
+                <option value="trans" @if(old('genero', $acompanhante->genero) == 'trans') selected @endif>Trans</option>
+                </select>
+             <x-input-error class="mt-2" :messages="$errors->get('genero')" />
+        </div>
+
         {{-- Data de Nascimento --}}
         <div>
             <x-input-label for="data_nascimento" value="Data de Nascimento" />

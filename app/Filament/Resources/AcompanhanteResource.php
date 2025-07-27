@@ -5,8 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AcompanhanteResource\Pages;
 use App\Filament\Resources\AcompanhanteResource\RelationManagers;
 use App\Models\Acompanhante;
-use App\Models\Estado;
 use App\Models\Cidade;
+use App\Models\Estado;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -40,6 +40,16 @@ class AcompanhanteResource extends Resource
                 Forms\Components\Section::make('Dados Públicos')
                     ->schema([
                         Forms\Components\TextInput::make('nome_artistico')->required()->maxLength(255),
+                        
+                        // --- CAMPO DE GÊNERO ADICIONADO AQUI ---
+                        Forms\Components\Select::make('genero')
+                            ->options([
+                                'mulher' => 'Mulher',
+                                'homem' => 'Homem',
+                                'trans' => 'Trans',
+                            ])
+                            ->required(),
+
                         Forms\Components\DatePicker::make('data_nascimento')->required(),
                         Forms\Components\Textarea::make('descricao')->required()->columnSpanFull(),
                         
@@ -69,21 +79,17 @@ class AcompanhanteResource extends Resource
                             ->columns(3)
                     ])->columns(2),
                 
-                // --- NOVA SEÇÃO ADICIONADA AQUI ---
                 Forms\Components\Section::make('Verificação de Identidade')
-                    ->description('Esta informação é privada e será usada apenas pela administração para confirmar a autenticidade do seu perfil. Ela não será exibida publicamente.')
+                    ->description('Esta informação é privada e não será exibida publicamente.')
                     ->schema([
                         Forms\Components\FileUpload::make('foto_verificacao_path')
                             ->label('Foto de Verificação (Rosto + Documento)')
-                            ->helperText('Para sua segurança, tire uma foto nítida do seu rosto segurando seu documento de identidade (RG ou CNH) aberto ao lado. Sua face e a foto do documento devem estar claramente visíveis.')
-                            ->disk('local') // Salva no disco PRIVADO
+                            ->disk('local')
                             ->directory('documentos_verificacao')
                             ->visibility('private')
                             ->image()
-                            ->imageEditor()
-                            ->required(),
+                            ->imageEditor(),
                     ]),
-                // --- FIM DA NOVA SEÇÃO ---
                 
                 Forms\Components\Section::make('Mídia')
                     ->schema([
@@ -103,6 +109,12 @@ class AcompanhanteResource extends Resource
                     ->disk('public')
                     ->circular(),
                 Tables\Columns\TextColumn::make('nome_artistico')->searchable(),
+                
+                // --- COLUNA DE GÊNERO ADICIONADA AQUI ---
+                Tables\Columns\TextColumn::make('genero')
+                    ->searchable()
+                    ->badge(),
+
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'pendente' => 'warning', 'aprovado' => 'success', 'rejeitado' => 'danger',
                 }),

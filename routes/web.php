@@ -24,7 +24,7 @@ Route::get('/politica-de-privacidade', function () {
     return view('legal.privacidade');
 })->name('privacidade');
 
-Route::get('/vitrine/{cidade}', [VitrineController::class, 'mostrarPorCidade'])->name('vitrine.por.cidade');
+Route::get('/vitrine/{genero}/{cidade}', [VitrineController::class, 'mostrarPorCidade'])->name('vitrine.por.cidade');
 Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('vitrine.show');
 Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
 

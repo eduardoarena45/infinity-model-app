@@ -98,7 +98,8 @@
                 const cidadeNome = this.value;
                 if (cidadeNome) {
                     // Monta a URL da vitrine e redireciona o usuário
-                    window.location.href = `/vitrine/${cidadeNome}`;
+                    // Redireciona para a categoria "mulher" por padrão
+                    window.location.href = `/vitrine/mulher/${cidadeNome}`;
                 }
             });
         }

@@ -16,9 +16,6 @@ class ProfileController extends Controller
 {
     /**
      * Aplica uma imagem de marca d'água em uma imagem usando a biblioteca GD nativa do PHP.
-     * @param string $caminhoImagemParaProcessar O caminho temporário para a imagem original.
-     * @param string $extensaoOriginal A extensão original do arquivo enviado pelo usuário.
-     * @return string O conteúdo binário da imagem final com a marca d'água.
      */
     private function aplicarMarcaDagua($caminhoImagemParaProcessar, $extensaoOriginal): string
     {
@@ -30,9 +27,9 @@ class ProfileController extends Controller
 
         try {
             $marcaDagua = imagecreatefrompng($marcaDaguaPath);
-            $extensao = strtolower($extensaoOriginal); // <-- USA A EXTENSÃO CORRETA
-            $imagem = null;
+            $extensao = strtolower($extensaoOriginal);
             
+            $imagem = null;
             switch ($extensao) {
                 case 'jpg':
                 case 'jpeg':
@@ -101,7 +98,22 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $acompanhante = $user->acompanhante;
-        $request->validate([/*... suas regras de validação ...*/]);
+
+        $request->validate([
+            'nome_artistico' => ['required', 'string', 'max:255'],
+            'data_nascimento' => ['required', 'date'],
+            'cidade_id' => ['required', 'exists:cidades,id'],
+            'whatsapp' => ['required', 'string', 'max:20'],
+            'descricao' => ['required', 'string'],
+            'valor_hora' => ['required', 'numeric'],
+            'servicos' => ['nullable', 'array'],
+            'servicos.*' => ['exists:servicos,id'],
+            'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'foto_verificacao' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            
+            // --- VALIDAÇÃO DE GÊNERO ADICIONADA AQUI ---
+            'genero' => ['required', 'string', 'in:mulher,homem,trans'],
+        ]);
 
         if ($request->hasFile('foto_principal')) {
             if ($acompanhante->foto_principal_path) {
@@ -110,7 +122,6 @@ class ProfileController extends Controller
             $imagem = $request->file('foto_principal');
             $nomeArquivo = 'perfis/' . Str::random(40) . '.jpg';
 
-            // Passa os dois parâmetros necessários
             $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
             Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
 
@@ -145,7 +156,6 @@ class ProfileController extends Controller
         $imagem = $request->file('avatar');
         $nomeArquivo = 'avatars/' . Str::random(40) . '.jpg';
 
-        // Passa os dois parâmetros necessários
         $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
         Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
 
@@ -189,7 +199,6 @@ class ProfileController extends Controller
             foreach ($request->file('fotos') as $file) {
                 $nomeArquivo = 'galerias/' . $user->id . '/' . Str::random(40) . '.jpg';
                 
-                // Passa os dois parâmetros necessários
                 $imagemComMarca = $this->aplicarMarcaDagua($file->getRealPath(), $file->getClientOriginalExtension());
                 Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
 
@@ -244,7 +253,7 @@ class ProfileController extends Controller
                 shell_exec($ffmpegCommand);
 
                 if (file_exists($thumbnailFullPath)) {
-                    $imagemComMarca = $this->aplicarMarcaDagua($thumbnailFullPath, 'jpg'); // Passa a extensão jpg
+                    $imagemComMarca = $this->aplicarMarcaDagua($thumbnailFullPath, 'jpg');
                     Storage::disk('public')->put($thumbnailRelativePath, $imagemComMarca);
                 }
                 
