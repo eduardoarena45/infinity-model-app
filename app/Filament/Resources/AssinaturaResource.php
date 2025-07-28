@@ -4,8 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AssinaturaResource\Pages;
 use App\Models\Assinatura;
-use App\Models\User; // Adicione esta linha
-use App\Notifications\PlanoAprovadoNotification; // Adicione esta linha
+use App\Models\User;
+use App\Notifications\PlanoAprovadoNotification;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -148,4 +148,20 @@ class AssinaturaResource extends Resource
             'edit' => Pages\EditAssinatura::route('/{record}/edit'),
         ];
     }    
+
+    // =======================================================
+    // === NOVOS MÉTODOS PARA O CONTADOR ADICIONADOS AQUI ===
+    // =======================================================
+
+    public static function getNavigationBadge(): ?string
+    {
+        // Conta o número de assinaturas com o status 'aguardando_pagamento'
+        return static::getModel()::where('status', 'aguardando_pagamento')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        // Define a cor do contador como 'warning' (amarelo/laranja)
+        return 'warning';
+    }
 }

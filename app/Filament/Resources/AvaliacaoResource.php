@@ -122,4 +122,20 @@ class AvaliacaoResource extends Resource
             'edit' => Pages\EditAvaliacao::route('/{record}/edit'),
         ];
     }    
+
+    // =======================================================
+    // === NOVOS MÉTODOS PARA O CONTADOR ADICIONADOS AQUI ===
+    // =======================================================
+    
+    public static function getNavigationBadge(): ?string
+    {
+        // Conta o número de avaliações com o status 'pendente'
+        return static::getModel()::where('status', 'pendente')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        // Define a cor do contador como 'warning' (amarelo/laranja)
+        return 'warning';
+    }
 }
