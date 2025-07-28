@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AssinaturaResource\Pages;
 use App\Models\Assinatura;
+use App\Models\User; // Adicione esta linha
+use App\Notifications\PlanoAprovadoNotification; // Adicione esta linha
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -23,7 +25,6 @@ class AssinaturaResource extends Resource
     {
         return $form
             ->schema([
-                // Secção para identificar a assinatura
                 Forms\Components\Section::make('Detalhes da Assinatura')
                     ->schema([
                         Forms\Components\Select::make('user_id')
@@ -32,34 +33,27 @@ class AssinaturaResource extends Resource
                             ->disabled()
                             ->required(),
                         
-                        // --- INÍCIO DA CORREÇÃO AUTOMÁTICA ---
                         Forms\Components\Select::make('plano_id')
                             ->relationship('plano', 'nome')
                             ->label('Plano Escolhido')
                             ->searchable()
                             ->required()
-                            ->live() // Reage a mudanças em tempo real
+                            ->live()
                             ->afterStateUpdated(function (Forms\Set $set, ?string $state) {
-                                // Esta função é executada assim que um novo plano é selecionado.
-                                // $state é o ID do novo plano.
                                 if ($state) {
                                     $plano = \App\Models\Plano::find($state);
-                                    // Se o plano selecionado não for gratuito (preço > 0),
-                                    // ele ativa a assinatura automaticamente.
                                     if ($plano && $plano->preco > 0) {
-                                        $set('status', 'ativa'); // Define o status para 'ativa'
-                                        $set('data_inicio', now()); // Define a data de início para agora
-                                        $set('data_fim', now()->addDays(30)); // Define a data de fim para 30 dias
+                                        $set('status', 'ativa');
+                                        $set('data_inicio', now());
+                                        $set('data_fim', now()->addDays(30));
                                     }
                                 }
                             }),
-                        // --- FIM DA CORREÇÃO AUTOMÁTICA ---
-
                     ])->columns(2),
 
-                // Secção para a sua gestão manual
                 Forms\Components\Section::make('Gestão do Administrador')
                     ->schema([
+                        // CAMPO DE STATUS COM A LÓGICA DE NOTIFICAÇÃO
                         Forms\Components\Select::make('status')
                             ->options([
                                 'aguardando_pagamento' => 'Aguardando Pagamento',
@@ -67,7 +61,19 @@ class AssinaturaResource extends Resource
                                 'vencida' => 'Vencida',
                                 'cancelada' => 'Cancelada',
                             ])
-                            ->required(),
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(function ($state, $record) {
+                                // Verifica se o novo estado é 'ativa'
+                                if ($state === 'ativa' && $record) {
+                                    $user = User::find($record->user_id);
+                                    $plano = $record->plano; // Pega o plano da assinatura
+                                    if ($user && $plano) {
+                                        // Envia a notificação para o utilizador
+                                        $user->notify(new PlanoAprovadoNotification($plano));
+                                    }
+                                }
+                            }),
                         Forms\Components\DateTimePicker::make('data_inicio')
                             ->label('Início da Assinatura')
                             ->required(),

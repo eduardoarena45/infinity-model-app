@@ -102,7 +102,8 @@
                                             @php
                                                 $borderColorClass = match ($notification->data['type'] ?? 'default') {
                                                     'success' => 'border-green-500',
-                                                    default => 'border-transparent',
+                                                    'info'    => 'border-blue-500',
+                                                    default   => 'border-transparent',
                                                 };
                                             @endphp
                                             <a href="{{ $notification->data['url'] ?? '#' }}" class="block px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 border-l-4 {{ $borderColorClass }} transition-colors">
