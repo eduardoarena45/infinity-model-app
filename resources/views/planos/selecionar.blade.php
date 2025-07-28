@@ -82,7 +82,8 @@
                             @else
                                 <form action="{{ route('planos.assinar', $plano) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="w-full bg-[--color-primary] text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity">Assinar Plano</button>
+                                    {{-- BOTÃO ALTERADO PARA AZUL --}}
+                                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">Assinar Plano</button>
                                 </form>
                             @endif
                         </div>

@@ -46,7 +46,15 @@ class User extends Authenticatable implements MustVerifyEmail
                     ->where('status', 'ativa')
                     ->where('data_fim', '>', now());
     }
-    // --- FIM DA CORREÇÃO ---
+    
+    /**
+     * Get all of the subscriptions for the user.
+     * ESTA É A NOVA FUNÇÃO QUE FALTAVA
+     */
+    public function assinaturas(): HasMany
+    {
+        return $this->hasMany(Assinatura::class);
+    }
 
     public function media(): HasMany
     {

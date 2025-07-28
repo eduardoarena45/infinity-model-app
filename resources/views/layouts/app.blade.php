@@ -72,7 +72,6 @@
                     </div>
                     
                     <div class="flex items-center space-x-4">
-                        {{-- Bloco de Notificações Atualizado --}}
                         <div x-data="{ open: false, unreadCount: {{ $unreadNotifications->count() }} }" class="relative">
                             <button @click="open = !open; if(open && unreadCount > 0) { markNotificationsAsRead(); unreadCount = 0; }" class="relative p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
                                 <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -103,6 +102,8 @@
                                                 $borderColorClass = match ($notification->data['type'] ?? 'default') {
                                                     'success' => 'border-green-500',
                                                     'info'    => 'border-blue-500',
+                                                    'warning' => 'border-yellow-500',
+                                                    'error'   => 'border-red-500', // <-- LINHA ADICIONADA AQUI
                                                     default   => 'border-transparent',
                                                 };
                                             @endphp
@@ -145,7 +146,6 @@
             </div>
         </div>
 
-        {{-- NOVO SCRIPT PARA MARCAR NOTIFICAÇÕES COMO LIDAS --}}
         <script>
             function markNotificationsAsRead() {
                 fetch('{{ route("notifications.markAsRead") }}', {
