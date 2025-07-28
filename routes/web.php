@@ -4,9 +4,10 @@ use App\Http\Controllers\LocalController;
 use App\Http\Controllers\PlanoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VitrineController;
+use App\Http\Controllers\NotificationController; // Adicione esta linha
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon; // Adicione esta linha
+use Carbon\Carbon;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +31,6 @@ Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('
 Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
 
 // --- ROTA DA API DE CIDADES (AGORA É PÚBLICA) ---
-// Esta rota foi movida para fora do grupo 'auth' para que todos possam acessá-la.
 Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstado'])->name('api.cidades');
 
 
@@ -70,7 +70,7 @@ Route::middleware('auth')->group(function () {
             'viewsToday' => $viewsToday,
             'viewsThisMonth' => $viewsThisMonth,
             'totalViews' => $totalViews,
-            'chartData' => $chartData, // Passa os dados do gráfico para a view
+            'chartData' => $chartData,
         ]);
     })->name('dashboard');
 
@@ -87,7 +87,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/assinar-plano/{plano}', [PlanoController::class, 'assinar'])->name('planos.assinar');
     Route::get('/planos/pagamento/{assinatura}', [PlanoController::class, 'mostrarPagamento'])->name('planos.pagamento');
 
-    // A rota da API de cidades foi removida daqui.
+    // NOVA ROTA PARA MARCAR NOTIFICAÇÕES COMO LIDAS
+    Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
 });
 
 

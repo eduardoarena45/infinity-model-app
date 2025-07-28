@@ -7,6 +7,8 @@ use App\Filament\Resources\AcompanhanteResource\RelationManagers;
 use App\Models\Acompanhante;
 use App\Models\Cidade;
 use App\Models\Estado;
+use App\Models\User; // Adicione esta linha
+use App\Notifications\PerfilAprovadoNotification; // Adicione esta linha
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -32,16 +34,32 @@ class AcompanhanteResource extends Resource
                         Forms\Components\Select::make('user_id')->relationship('user', 'name')->searchable()->preload()->required()->disabledOn('edit'),
                         Forms\Components\Toggle::make('is_verified')->label('Perfil Verificado'),
                         Forms\Components\Toggle::make('is_featured')->label('Perfil em Destaque'),
+                        
+                        // CAMPO DE STATUS COM A LÓGICA DE NOTIFICAÇÃO
                         Forms\Components\Select::make('status')
-                            ->options(['pendente' => 'Pendente', 'aprovado' => 'Aprovado', 'rejeitado' => 'Rejeitado'])
-                            ->required(),
+                            ->options([
+                                'pendente' => 'Pendente',
+                                'aprovado' => 'Aprovado',
+                                'rejeitado' => 'Rejeitado',
+                            ])
+                            ->required()
+                            ->live() // Adicionado para garantir que o hook seja disparado em tempo real
+                            ->afterStateUpdated(function ($state, $record) {
+                                // Verifica se o novo estado é 'aprovado'
+                                if ($state === 'aprovado') {
+                                    // Encontra o utilizador associado à acompanhante e envia a notificação
+                                    $user = User::find($record->user_id);
+                                    if ($user) {
+                                        $user->notify(new PerfilAprovadoNotification());
+                                    }
+                                }
+                            }),
                     ])->columns(4),
 
                 Forms\Components\Section::make('Dados Públicos')
                     ->schema([
                         Forms\Components\TextInput::make('nome_artistico')->required()->maxLength(255),
                         
-                        // --- CAMPO DE GÊNERO ADICIONADO AQUI ---
                         Forms\Components\Select::make('genero')
                             ->options([
                                 'mulher' => 'Mulher',
@@ -110,7 +128,6 @@ class AcompanhanteResource extends Resource
                     ->circular(),
                 Tables\Columns\TextColumn::make('nome_artistico')->searchable(),
                 
-                // --- COLUNA DE GÊNERO ADICIONADA AQUI ---
                 Tables\Columns\TextColumn::make('genero')
                     ->searchable()
                     ->badge(),
