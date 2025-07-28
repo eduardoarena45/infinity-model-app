@@ -89,11 +89,11 @@
             <select id="cidade_id" name="cidade_id" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full" {{ !$acompanhante->cidade_id ? 'disabled' : '' }}>
                 <option value="">Selecione um estado primeiro</option>
                  @if ($cidades)
-                     @foreach ($cidades as $cidade)
-                         <option value="{{ $cidade->id }}" {{ old('cidade_id', $acompanhante->cidade_id) == $cidade->id ? 'selected' : '' }}>
-                             {{ $cidade->nome }}
-                         </option>
-                     @endforeach
+                      @foreach ($cidades as $cidade)
+                          <option value="{{ $cidade->id }}" {{ old('cidade_id', $acompanhante->cidade_id) == $cidade->id ? 'selected' : '' }}>
+                              {{ $cidade->nome }}
+                          </option>
+                      @endforeach
                  @endif
             </select>
         </div>
@@ -118,6 +118,42 @@
             <x-text-input id="valor_hora" name="valor_hora" type="text" class="mt-1 block w-full" :value="old('valor_hora', $acompanhante->valor_hora)" required />
             <x-input-error class="mt-2" :messages="$errors->get('valor_hora')" />
         </div>
+
+        {{-- ======================================================= --}}
+        {{-- === NOVOS CAMPOS DE PREÇO ADICIONADOS AQUI === --}}
+        {{-- ======================================================= --}}
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Preços Adicionais (Opcional)
+            </h3>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Preencha apenas os valores que desejar oferecer. Eles aparecerão num menu expansível no seu perfil.
+            </p>
+
+            <!-- Valor 15 Minutos -->
+            <div class="mt-4">
+                <x-input-label for="valor_15_min" :value="__('Valor por 15 Minutos')" />
+                <x-text-input id="valor_15_min" name="valor_15_min" type="number" step="0.01" class="mt-1 block w-full" :value="old('valor_15_min', $acompanhante?->valor_15_min)" placeholder="Ex: 100.00" />
+                <x-input-error class="mt-2" :messages="$errors->get('valor_15_min')" />
+            </div>
+
+            <!-- Valor 30 Minutos -->
+            <div class="mt-4">
+                <x-input-label for="valor_30_min" :value="__('Valor por 30 Minutos')" />
+                <x-text-input id="valor_30_min" name="valor_30_min" type="number" step="0.01" class="mt-1 block w-full" :value="old('valor_30_min', $acompanhante?->valor_30_min)" placeholder="Ex: 150.00" />
+                <x-input-error class="mt-2" :messages="$errors->get('valor_30_min')" />
+            </div>
+
+            <!-- Valor Pernoite -->
+            <div class="mt-4">
+                <x-input-label for="valor_pernoite" :value="__('Valor por Pernoite')" />
+                <x-text-input id="valor_pernoite" name="valor_pernoite" type="number" step="0.01" class="mt-1 block w-full" :value="old('valor_pernoite', $acompanhante?->valor_pernoite)" placeholder="Ex: 1200.00" />
+                <x-input-error class="mt-2" :messages="$errors->get('valor_pernoite')" />
+            </div>
+        </div>
+        {{-- ======================================================= --}}
+        {{-- =================== FIM DOS NOVOS CAMPOS ================== --}}
+        {{-- ======================================================= --}}
 
         {{-- Serviços Oferecidos --}}
         <div>

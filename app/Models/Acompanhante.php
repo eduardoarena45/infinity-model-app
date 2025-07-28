@@ -25,6 +25,9 @@ class Acompanhante extends Model
         'cidade_id',
         'descricao',
         'valor_hora',
+        'valor_15_min', // <-- Adicionado
+        'valor_30_min', // <-- Adicionado
+        'valor_pernoite', // <-- Adicionado
         'whatsapp',
         'is_verified',
         'is_featured',
@@ -36,6 +39,9 @@ class Acompanhante extends Model
         'is_featured' => 'boolean',
         'data_nascimento' => 'date',
         'valor_hora' => 'decimal:2',
+        'valor_15_min' => 'decimal:2', // <-- Adicionado
+        'valor_30_min' => 'decimal:2', // <-- Adicionado
+        'valor_pernoite' => 'decimal:2', // <-- Adicionado
     ];
 
     public function getFotoPrincipalUrlAttribute(): string

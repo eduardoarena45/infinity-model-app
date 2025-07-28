@@ -4,9 +4,10 @@ use Illuminate\Support\Facades\Storage;
 
 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-300
     @if($isDestaque) border-2 border-yellow-400 @endif">
+    
+    {{-- Imagem clicável --}}
     <a href="{{ route('vitrine.show', $perfil->id) }}" class="block">
         <div class="relative">
-            {{-- MELHORIA: Altura da imagem responsiva, menor no celular --}}
             <img src="{{ $perfil->foto_principal_url }}" alt="Foto de {{ $perfil->nome_artistico }}" class="w-full h-48 sm:h-64 object-cover">
             
             @if($perfil->is_verified)
@@ -17,10 +18,11 @@ use Illuminate\Support\Facades\Storage;
             </div>
             @endif
         </div>
-        
-        {{-- MELHORIA: Padding menor para celular --}}
-        <div class="p-2 sm:p-3">
-            {{-- MELHORIA: Fontes menores para celular e classe 'truncate' para evitar quebra de layout --}}
+    </a>
+    
+    <div class="p-2 sm:p-3">
+        {{-- Nome, cidade e avaliações clicáveis --}}
+        <a href="{{ route('vitrine.show', $perfil->id) }}" class="block">
             <h3 class="text-sm sm:text-base font-semibold text-[--color-primary] dark:text-white truncate">{{ $perfil->nome_artistico }}</h3>
             <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{{ $perfil->cidade->nome ?? 'Cidade' }}</p>
             
@@ -30,12 +32,55 @@ use Illuminate\Support\Facades\Storage;
                 @endfor
                 <span class="ml-1 text-xs text-gray-400">({{ $perfil->avaliacoes->count() }})</span>
             </div>
-            
-            {{-- MELHORIA: Fonte e margem ajustadas, com "/ hora" menor para melhor visual --}}
-            <p class="text-base sm:text-lg font-bold text-green-600 dark:text-green-400 mt-2">
-                R$ {{ number_format($perfil->valor_hora, 0, ',', '.') }} 
-                <span class="text-xs font-normal text-gray-500">/ hora</span>
-            </p>
+        </a>
+
+        {{-- ======================================================= --}}
+        {{-- === NOVO BLOCO DE PREÇOS EXPANSÍVEL ADICIONADO AQUI === --}}
+        {{-- ======================================================= --}}
+        <div x-data="{ open: false }" class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center">
+                {{-- Preço Principal --}}
+                <a href="{{ route('vitrine.show', $perfil->id) }}" class="block">
+                    <p class="text-base sm:text-lg font-bold text-green-600 dark:text-green-400">
+                        R$ {{ number_format($perfil->valor_hora, 2, ',', '.') }} 
+                        <span class="text-xs font-normal text-gray-500">/ hora</span>
+                    </p>
+                </a>
+
+                {{-- Botão de Seta (só aparece se houver outros preços) --}}
+                @if($perfil->valor_15_min || $perfil->valor_30_min || $perfil->valor_pernoite)
+                    <button @click="open = !open" class="p-2 -mr-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                        <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform" :class="{ 'rotate-180': open }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </button>
+                @endif
+            </div>
+
+            {{-- Tabela de Preços Oculta --}}
+            <div x-show="open" x-cloak x-transition class="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700/50 space-y-1 text-xs sm:text-sm">
+                @if($perfil->valor_15_min)
+                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                        <span>15 Minutos</span>
+                        <span class="font-semibold">R$ {{ number_format($perfil->valor_15_min, 2, ',', '.') }}</span>
+                    </div>
+                @endif
+                @if($perfil->valor_30_min)
+                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                        <span>30 Minutos</span>
+                        <span class="font-semibold">R$ {{ number_format($perfil->valor_30_min, 2, ',', '.') }}</span>
+                    </div>
+                @endif
+                @if($perfil->valor_pernoite)
+                    <div class="flex justify-between text-gray-700 dark:text-gray-300">
+                        <span>Pernoite</span>
+                        <span class="font-semibold">R$ {{ number_format($perfil->valor_pernoite, 2, ',', '.') }}</span>
+                    </div>
+                @endif
+            </div>
         </div>
-    </a>
+        {{-- ======================================================= --}}
+        {{-- =================== FIM DO BLOCO DE PREÇOS ================== --}}
+        {{-- ======================================================= --}}
+    </div>
 </div>

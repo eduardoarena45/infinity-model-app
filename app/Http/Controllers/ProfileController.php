@@ -105,14 +105,18 @@ class ProfileController extends Controller
             'cidade_id' => ['required', 'exists:cidades,id'],
             'whatsapp' => ['required', 'string', 'max:20'],
             'descricao' => ['required', 'string'],
-            'valor_hora' => ['required', 'numeric'],
+            'valor_hora' => ['required', 'numeric', 'min:0'],
             'servicos' => ['nullable', 'array'],
             'servicos.*' => ['exists:servicos,id'],
             'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'foto_verificacao' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            
-            // --- VALIDAÇÃO DE GÊNERO ADICIONADA AQUI ---
             'genero' => ['required', 'string', 'in:mulher,homem,trans'],
+            
+            // --- VALIDAÇÃO PARA OS NOVOS CAMPOS DE PREÇO ---
+            'valor_15_min' => ['nullable', 'numeric', 'min:0'],
+            'valor_30_min' => ['nullable', 'numeric', 'min:0'],
+            'valor_pernoite' => ['nullable', 'numeric', 'min:0'],
+            // --- FIM DA VALIDAÇÃO ---
         ]);
 
         if ($request->hasFile('foto_principal')) {
