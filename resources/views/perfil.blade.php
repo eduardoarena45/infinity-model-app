@@ -119,10 +119,10 @@
                                 <div>
                                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sua Nota</label>
                                      <div class="flex flex-row-reverse justify-end items-center">
-                                        @for ($i = 5; $i >= 1; $i--)
-                                            <input type="radio" id="nota-{{$i}}" name="nota" value="{{$i}}" class="sr-only peer" required>
-                                            <label for="nota-{{$i}}" class="text-gray-300 dark:text-gray-600 cursor-pointer text-3xl peer-hover:text-yellow-400 peer-checked:text-yellow-400 hover:text-yellow-400">★</label>
-                                        @endfor
+                                         @for ($i = 5; $i >= 1; $i--)
+                                             <input type="radio" id="nota-{{$i}}" name="nota" value="{{$i}}" class="sr-only peer" required>
+                                             <label for="nota-{{$i}}" class="text-gray-300 dark:text-gray-600 cursor-pointer text-3xl peer-hover:text-yellow-400 peer-checked:text-yellow-400 hover:text-yellow-400">★</label>
+                                         @endfor
                                      </div>
                                      @error('nota') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
@@ -130,14 +130,18 @@
                             </div>
                         </form>
                     </div>
+
+                    {{-- ======================================================= --}}
+                    {{-- === INÍCIO DAS ALTERAÇÕES PARA PAGINAÇÃO === --}}
+                    {{-- ======================================================= --}}
                     <div class="space-y-6">
-                        @forelse($acompanhante->avaliacoes->where('status', 'aprovado') as $avaliacao)
+                        @forelse($avaliacoes as $avaliacao)
                             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                                 <div class="flex items-center mb-2">
                                     <p class="font-bold text-gray-900 dark:text-white">{{ $avaliacao->nome_avaliador }}</p>
                                     <div class="flex items-center ml-4">
                                          @for ($i = 1; $i <= 5; $i++)
-                                            <svg class="w-5 h-5 {{ $i <= $avaliacao->nota ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                             <svg class="w-5 h-5 {{ $i <= $avaliacao->nota ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
                                          @endfor
                                     </div>
                                 </div>
@@ -147,6 +151,14 @@
                             <p class="text-gray-500 dark:text-gray-400 text-center py-4">Este perfil ainda não tem avaliações. Seja o primeiro a comentar!</p>
                         @endforelse
                     </div>
+
+                    {{-- Adiciona os links de paginação --}}
+                    <div class="mt-8">
+                        {{ $avaliacoes->links() }}
+                    </div>
+                    {{-- ======================================================= --}}
+                    {{-- === FIM DAS ALTERAÇÕES === --}}
+                    {{-- ======================================================= --}}
                 </section>
             </div>
         </div>

@@ -28,7 +28,7 @@ class VitrineController extends Controller
     public function mostrarPorCidade(Request $request, string $genero, string $cidadeNome)
     {
         $baseQuery = Acompanhante::query()
-            ->where('genero', $genero) // <-- NOVO FILTRO DE GÊNERO
+            ->where('genero', $genero)
             ->whereHas('cidade', function ($query) use ($cidadeNome) {
                 $query->where('nome', $cidadeNome);
             })
@@ -68,8 +68,19 @@ class VitrineController extends Controller
         // Adiciona esta linha para registar a visualização do perfil
         $acompanhante->profileViews()->create();
 
-        $acompanhante->load('servicos', 'midias', 'avaliacoes');
-        return view('perfil', ['acompanhante' => $acompanhante]);
+        // Carrega as outras relações normalmente
+        $acompanhante->load('servicos', 'midias');
+
+        // Busca as avaliações APROVADAS de forma paginada (4 por página)
+        $avaliacoes = $acompanhante->avaliacoes()
+                                  ->where('status', 'aprovado')
+                                  ->latest() // Ordena pelas mais recentes
+                                  ->paginate(4);
+
+        return view('perfil', [
+            'acompanhante' => $acompanhante,
+            'avaliacoes' => $avaliacoes, // Passa a coleção paginada para a view
+        ]);
     }
 
     /**
