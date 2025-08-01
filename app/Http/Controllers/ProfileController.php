@@ -8,6 +8,7 @@ use App\Models\Servico;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache; // Adicione esta linha
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
@@ -99,29 +100,27 @@ class ProfileController extends Controller
         $user = $request->user();
         $acompanhante = $user->acompanhante;
 
+        // --- REGRAS DE VALIDAÇÃO ATUALIZADAS ---
         $request->validate([
             'nome_artistico' => ['required', 'string', 'max:255'],
             'data_nascimento' => ['required', 'date'],
             'cidade_id' => ['required', 'exists:cidades,id'],
             'whatsapp' => ['required', 'string', 'max:20'],
-            'descricao' => ['required', 'string'],
-            'valor_hora' => ['required', 'numeric', 'min:0'],
+            'descricao' => ['required', 'string', 'min:50'],
+            'genero' => ['required', 'string', 'in:mulher,homem,trans'],
+            
+            'valor_hora' => ['nullable', 'numeric', 'min:0'],
+            'valor_15_min' => ['nullable', 'numeric', 'min:0'],
+            'valor_30_min' => ['nullable', 'numeric', 'min:0'],
+            'valor_pernoite' => ['nullable', 'numeric', 'min:0'],
             'servicos' => ['nullable', 'array'],
             'servicos.*' => ['exists:servicos,id'],
             'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'foto_verificacao' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
-            'genero' => ['required', 'string', 'in:mulher,homem,trans'],
-            'valor_15_min' => ['nullable', 'numeric', 'min:0'],
-            'valor_30_min' => ['nullable', 'numeric', 'min:0'],
-            'valor_pernoite' => ['nullable', 'numeric', 'min:0'],
         ]);
+        // --- FIM DAS REGRAS DE VALIDAÇÃO ---
 
-        // --- INÍCIO DA NOVA LÓGICA DE ATUALIZAÇÃO ---
-
-        // Verifica se o perfil já foi aprovado pelo menos uma vez.
         $jaFoiAprovado = in_array($acompanhante->getOriginal('status'), ['aprovado', 'rejeitado']);
-        
-        // Verifica se foram enviadas novas imagens que requerem moderação.
         $requerModeracaoDeImagem = $request->hasFile('foto_principal') || $request->hasFile('foto_verificacao');
 
         if ($request->hasFile('foto_principal')) {
@@ -145,22 +144,18 @@ class ProfileController extends Controller
             $acompanhante->foto_verificacao_path = $path;
         }
 
-        // Atualiza todos os dados de texto e preço
         $acompanhante->fill($request->except(['foto_principal', 'foto_verificacao', 'servicos']));
 
-        // Define o status com base na nova lógica
         if ($jaFoiAprovado && !$requerModeracaoDeImagem) {
-            // Se já foi aprovado e não enviou novas fotos, mantém o status atual (provavelmente 'aprovado')
-            // Não fazemos nada, o status original será mantido.
+            // Mantém o status
         } else {
-            // Se for a primeira vez ou se enviou novas fotos, volta para pendente.
             $acompanhante->status = 'pendente';
         }
 
         $acompanhante->save();
         $acompanhante->servicos()->sync($request->input('servicos', []));
-
-        // --- FIM DA NOVA LÓGICA ---
+        
+        Cache::flush(); // Limpa o cache para garantir que a vitrine atualize
 
         return back()->with('status', 'profile-updated');
     }
@@ -230,8 +225,8 @@ class ProfileController extends Controller
                     'status' => 'pendente'
                 ]);
             }
-            // Adicionado: Coloca o perfil principal em moderação
             $user->acompanhante->update(['status' => 'pendente']);
+            Cache::flush(); // Limpa o cache
         }
         return back()->with('status', 'gallery-updated')->with('success_message', 'Fotos enviadas com sucesso!');
     }
@@ -246,6 +241,7 @@ class ProfileController extends Controller
         Storage::disk('public')->delete($media->path);
 
         $media->delete();
+        Cache::flush(); // Limpa o cache
         return back()->with('status', 'gallery-updated')->with('success_message', 'Mídia removida!');
     }
 
@@ -288,8 +284,8 @@ class ProfileController extends Controller
                     'status' => 'pendente'
                 ]);
             }
-            // Adicionado: Coloca o perfil principal em moderação
             $user->acompanhante->update(['status' => 'pendente']);
+            Cache::flush(); // Limpa o cache
         }
         return back()->with('status', 'gallery-updated')->with('success_message', 'Vídeos enviados com sucesso!');
     }
