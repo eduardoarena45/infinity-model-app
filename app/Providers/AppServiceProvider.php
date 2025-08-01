@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\View; // Adicione esta linha
-use Illuminate\Support\Facades\Auth; // Adicione esta linha
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Acompanhante; // Adicione esta linha
+use App\Observers\AcompanhanteObserver; // Adicione esta linha
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,5 +36,8 @@ class AppServiceProvider extends ServiceProvider
                 $view->with('unreadNotifications', collect());
             }
         });
+
+        // Regista o nosso novo observador para limpar o cache automaticamente
+        Acompanhante::observe(AcompanhanteObserver::class);
     }
 }

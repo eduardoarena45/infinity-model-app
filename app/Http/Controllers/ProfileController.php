@@ -111,13 +111,18 @@ class ProfileController extends Controller
             'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'foto_verificacao' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'genero' => ['required', 'string', 'in:mulher,homem,trans'],
-            
-            // --- VALIDAÇÃO PARA OS NOVOS CAMPOS DE PREÇO ---
             'valor_15_min' => ['nullable', 'numeric', 'min:0'],
             'valor_30_min' => ['nullable', 'numeric', 'min:0'],
             'valor_pernoite' => ['nullable', 'numeric', 'min:0'],
-            // --- FIM DA VALIDAÇÃO ---
         ]);
+
+        // --- INÍCIO DA NOVA LÓGICA DE ATUALIZAÇÃO ---
+
+        // Verifica se o perfil já foi aprovado pelo menos uma vez.
+        $jaFoiAprovado = in_array($acompanhante->getOriginal('status'), ['aprovado', 'rejeitado']);
+        
+        // Verifica se foram enviadas novas imagens que requerem moderação.
+        $requerModeracaoDeImagem = $request->hasFile('foto_principal') || $request->hasFile('foto_verificacao');
 
         if ($request->hasFile('foto_principal')) {
             if ($acompanhante->foto_principal_path) {
@@ -140,10 +145,22 @@ class ProfileController extends Controller
             $acompanhante->foto_verificacao_path = $path;
         }
 
+        // Atualiza todos os dados de texto e preço
         $acompanhante->fill($request->except(['foto_principal', 'foto_verificacao', 'servicos']));
-        $acompanhante->status = 'pendente';
+
+        // Define o status com base na nova lógica
+        if ($jaFoiAprovado && !$requerModeracaoDeImagem) {
+            // Se já foi aprovado e não enviou novas fotos, mantém o status atual (provavelmente 'aprovado')
+            // Não fazemos nada, o status original será mantido.
+        } else {
+            // Se for a primeira vez ou se enviou novas fotos, volta para pendente.
+            $acompanhante->status = 'pendente';
+        }
+
         $acompanhante->save();
         $acompanhante->servicos()->sync($request->input('servicos', []));
+
+        // --- FIM DA NOVA LÓGICA ---
 
         return back()->with('status', 'profile-updated');
     }
@@ -213,6 +230,8 @@ class ProfileController extends Controller
                     'status' => 'pendente'
                 ]);
             }
+            // Adicionado: Coloca o perfil principal em moderação
+            $user->acompanhante->update(['status' => 'pendente']);
         }
         return back()->with('status', 'gallery-updated')->with('success_message', 'Fotos enviadas com sucesso!');
     }
@@ -269,6 +288,8 @@ class ProfileController extends Controller
                     'status' => 'pendente'
                 ]);
             }
+            // Adicionado: Coloca o perfil principal em moderação
+            $user->acompanhante->update(['status' => 'pendente']);
         }
         return back()->with('status', 'gallery-updated')->with('success_message', 'Vídeos enviados com sucesso!');
     }
