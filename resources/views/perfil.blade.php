@@ -57,6 +57,42 @@
                     <p class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{{ $acompanhante->descricao }}</p>
                 </section>
 
+                <section>
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Disponibilidade Semanal</h3>
+                    @if(!empty($acompanhante->horarios_atendimento))
+                        <div class="grid grid-cols-4 md:grid-cols-7 gap-4 text-center">
+                            @php
+                                $diasSemana = [
+                                    1 => ['curto' => 'Seg', 'longo' => 'segunda'],
+                                    2 => ['curto' => 'Ter', 'longo' => 'terca'],
+                                    3 => ['curto' => 'Qua', 'longo' => 'quarta'],
+                                    4 => ['curto' => 'Qui', 'longo' => 'quinta'],
+                                    5 => ['curto' => 'Sex', 'longo' => 'sexta'],
+                                    6 => ['curto' => 'Sáb', 'longo' => 'sabado'],
+                                    7 => ['curto' => 'Dom', 'longo' => 'domingo'],
+                                ];
+                                $hoje = date('N');
+                            @endphp
+                            @foreach($diasSemana as $numDia => $diaInfo)
+                                @php
+                                    $horarioInfo = $acompanhante->horarios_atendimento[$diaInfo['longo']] ?? null;
+                                    $isHoje = ($numDia == $hoje);
+                                @endphp
+                                <div class="p-3 rounded-lg {{ $isHoje ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-gray-50 dark:bg-gray-700/50' }}">
+                                    <p class="font-bold {{ $isHoje ? 'text-blue-800 dark:text-blue-300' : 'text-gray-800 dark:text-white' }}">{{ $diaInfo['curto'] }}</p>
+                                    @if($horarioInfo && $horarioInfo['ativo'])
+                                        <p class="text-xs text-gray-700 dark:text-gray-300 mt-1">{{ $horarioInfo['horario'] ?: 'Atende' }}</p>
+                                    @else
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1 italic">-</p>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-gray-500 dark:text-gray-400">Horários de atendimento não informados.</p>
+                    @endif
+                </section>
+
                 @if($acompanhante->servicos->isNotEmpty())
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Serviços</h3>
@@ -68,6 +104,9 @@
                 </section>
                 @endif
                 
+                {{-- ======================================================= --}}
+                {{-- === SECÇÃO DA GALERIA REINTEGRADA AQUI === --}}
+                {{-- ======================================================= --}}
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Galeria</h3>
                     @if($acompanhante->midias->where('status', 'aprovado')->isNotEmpty())
@@ -96,6 +135,9 @@
                     @endif
                 </section>
                 
+                {{-- ======================================================= --}}
+                {{-- === SECÇÃO DE AVALIAÇÕES REINTEGRADA AQUI === --}}
+                {{-- ======================================================= --}}
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Avaliações de Clientes</h3>
                     @if(session('success'))
@@ -131,9 +173,6 @@
                         </form>
                     </div>
 
-                    {{-- ======================================================= --}}
-                    {{-- === INÍCIO DAS ALTERAÇÕES PARA PAGINAÇÃO === --}}
-                    {{-- ======================================================= --}}
                     <div class="space-y-6">
                         @forelse($avaliacoes as $avaliacao)
                             <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
@@ -152,13 +191,9 @@
                         @endforelse
                     </div>
 
-                    {{-- Adiciona os links de paginação --}}
                     <div class="mt-8">
                         {{ $avaliacoes->links() }}
                     </div>
-                    {{-- ======================================================= --}}
-                    {{-- === FIM DAS ALTERAÇÕES === --}}
-                    {{-- ======================================================= --}}
                 </section>
             </div>
         </div>

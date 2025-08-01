@@ -25,13 +25,14 @@ class Acompanhante extends Model
         'cidade_id',
         'descricao',
         'valor_hora',
-        'valor_15_min', // <-- Adicionado
-        'valor_30_min', // <-- Adicionado
-        'valor_pernoite', // <-- Adicionado
+        'valor_15_min',
+        'valor_30_min',
+        'valor_pernoite',
         'whatsapp',
         'is_verified',
         'is_featured',
         'status',
+        'horarios_atendimento', // <-- Adicionado
     ];
 
     protected $casts = [
@@ -39,9 +40,10 @@ class Acompanhante extends Model
         'is_featured' => 'boolean',
         'data_nascimento' => 'date',
         'valor_hora' => 'decimal:2',
-        'valor_15_min' => 'decimal:2', // <-- Adicionado
-        'valor_30_min' => 'decimal:2', // <-- Adicionado
-        'valor_pernoite' => 'decimal:2', // <-- Adicionado
+        'valor_15_min' => 'decimal:2',
+        'valor_30_min' => 'decimal:2',
+        'valor_pernoite' => 'decimal:2',
+        'horarios_atendimento' => 'array', // <-- Adicionado
     ];
 
     public function getFotoPrincipalUrlAttribute(): string

@@ -49,6 +49,7 @@
                             'dashboard' => 'Desempenho',
                             'profile.edit' => 'Editar Perfil',
                             'galeria.gerir' => 'Gerir Galeria',
+                            'disponibilidade.edit' => 'Disponibilidade', // <-- BOTÃO ADICIONADO AQUI
                             'planos.selecionar' => 'Meu Plano',
                         ];
                     @endphp
@@ -103,7 +104,7 @@
                                                     'success' => 'border-green-500',
                                                     'info'    => 'border-blue-500',
                                                     'warning' => 'border-yellow-500',
-                                                    'error'   => 'border-red-500', // <-- LINHA ADICIONADA AQUI
+                                                    'error'   => 'border-red-500',
                                                     default   => 'border-transparent',
                                                 };
                                             @endphp

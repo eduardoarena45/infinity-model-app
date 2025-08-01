@@ -4,7 +4,8 @@ use App\Http\Controllers\LocalController;
 use App\Http\Controllers\PlanoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VitrineController;
-use App\Http\Controllers\NotificationController; // Adicione esta linha
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DisponibilidadeController; // Adicione esta linha
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -89,6 +90,10 @@ Route::middleware('auth')->group(function () {
 
     // NOVA ROTA PARA MARCAR NOTIFICAÇÕES COMO LIDAS
     Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+
+    // NOVAS ROTAS PARA A PÁGINA DE DISPONIBILIDADE
+    Route::get('/disponibilidade', [DisponibilidadeController::class, 'edit'])->name('disponibilidade.edit');
+    Route::post('/disponibilidade', [DisponibilidadeController::class, 'update'])->name('disponibilidade.update');
 });
 
 
