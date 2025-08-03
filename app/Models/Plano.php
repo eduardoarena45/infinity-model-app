@@ -21,7 +21,8 @@ class Plano extends Model
         'preco',
         'limite_fotos',
         'limite_videos',
-        'destaque',       // <-- CORRIGIDO E ADICIONADO
-        'permite_videos', // <-- ADICIONADO
+        'destaque',
+        'permite_videos',
+        'limite_descricao', // <-- Adicionado
     ];
 }

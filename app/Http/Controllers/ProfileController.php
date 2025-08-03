@@ -8,7 +8,7 @@ use App\Models\Servico;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache; // Adicione esta linha
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
@@ -85,6 +85,10 @@ class ProfileController extends Controller
             $cidades = $acompanhante->cidade->estado->cidades()->orderBy('nome')->get();
         }
 
+        // --- LÓGICA ADICIONADA AQUI ---
+        // Passa o limite de descrição para a view
+        $descricaoLimit = $user->getDescricaoLimit();
+
         return view('profile.edit', [
             'user' => $user,
             'acompanhante' => $acompanhante,
@@ -92,6 +96,7 @@ class ProfileController extends Controller
             'cidades' => $cidades,
             'servicos' => $servicos,
             'servicosAtuais' => $servicosAtuais,
+            'descricaoLimit' => $descricaoLimit, // <-- Passa a variável para a view
         ]);
     }
 
@@ -100,15 +105,21 @@ class ProfileController extends Controller
         $user = $request->user();
         $acompanhante = $user->acompanhante;
 
-        // --- REGRAS DE VALIDAÇÃO ATUALIZADAS ---
+        // --- LÓGICA DE VALIDAÇÃO DINÂMICA PARA DESCRIÇÃO ---
+        $descricaoLimit = $user->getDescricaoLimit();
+        $descricaoRules = ['required', 'string'];
+        if ($descricaoLimit) {
+            $descricaoRules[] = 'max:' . $descricaoLimit;
+        }
+        // --- FIM DA LÓGICA ---
+
         $request->validate([
             'nome_artistico' => ['required', 'string', 'max:255'],
             'data_nascimento' => ['required', 'date'],
             'cidade_id' => ['required', 'exists:cidades,id'],
             'whatsapp' => ['required', 'string', 'max:20'],
-            'descricao' => ['required', 'string', 'min:50'],
+            'descricao' => $descricaoRules, // <-- Regra dinâmica aplicada aqui
             'genero' => ['required', 'string', 'in:mulher,homem,trans'],
-            
             'valor_hora' => ['nullable', 'numeric', 'min:0'],
             'valor_15_min' => ['nullable', 'numeric', 'min:0'],
             'valor_30_min' => ['nullable', 'numeric', 'min:0'],
@@ -118,8 +129,7 @@ class ProfileController extends Controller
             'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'foto_verificacao' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ]);
-        // --- FIM DAS REGRAS DE VALIDAÇÃO ---
-
+        
         $jaFoiAprovado = in_array($acompanhante->getOriginal('status'), ['aprovado', 'rejeitado']);
         $requerModeracaoDeImagem = $request->hasFile('foto_principal') || $request->hasFile('foto_verificacao');
 

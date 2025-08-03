@@ -36,18 +36,30 @@
                                 <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 WhatsApp Visível
                             </li>
+
+                            {{-- ======================================================= --}}
+                            {{-- === NOVA LINHA PARA O LIMITE DE DESCRIÇÃO === --}}
+                            {{-- ======================================================= --}}
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                @if($plano->limite_descricao)
+                                    Descrição com {{ $plano->limite_descricao }} caracteres
+                                @else
+                                    Descrição Ilimitada
+                                @endif
+                            </li>
+                            {{-- ======================================================= --}}
+                            {{-- =================== FIM DA NOVA LINHA ================== --}}
+                            {{-- ======================================================= --}}
+
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 {{ $plano->limite_fotos }} Fotos na Galeria
                             </li>
 
-                            {{-- ======================================================= --}}
-                            {{-- === CÓDIGO NOVO PARA VÍDEOS === --}}
-                            {{-- ======================================================= --}}
                             @if ($plano->permite_videos)
                                 <li class="flex items-center">
                                     <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    {{-- Mostra o limite de vídeos do plano --}}
                                     {{ $plano->limite_videos }} Vídeos na Galeria
                                 </li>
                             @else
@@ -56,10 +68,6 @@
                                     Vídeos na Galeria
                                 </li>
                             @endif
-                            {{-- ======================================================= --}}
-                            {{-- =================== FIM DO CÓDIGO NOVO ================== --}}
-                            {{-- ======================================================= --}}
-
 
                             @if ($plano->destaque)
                                 <li class="flex items-center">
@@ -82,7 +90,6 @@
                             @else
                                 <form action="{{ route('planos.assinar', $plano) }}" method="POST">
                                     @csrf
-                                    {{-- BOTÃO ALTERADO PARA AZUL --}}
                                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">Assinar Plano</button>
                                 </form>
                             @endif

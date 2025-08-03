@@ -87,6 +87,20 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     // --- FIM DO NOVO MÉTODO ---
 
+    // --- NOVA FUNÇÃO ADICIONADA PARA O LIMITE DE DESCRIÇÃO ---
+    public function getDescricaoLimit(): ?int
+    {
+        if ($this->assinaturaAtiva && $this->assinaturaAtiva->plano) {
+            // Retorna o limite do plano ativo. Se for 0 ou nulo, retorna null (ilimitado).
+            return $this->assinaturaAtiva->plano->limite_descricao ?: null;
+        }
+        
+        // Se não tiver assinatura ativa, busca o limite do plano Grátis.
+        $planoGratis = Plano::where('slug', 'gratis')->first();
+        return $planoGratis ? $planoGratis->limite_descricao : null;
+    }
+    // --- FIM DA NOVA FUNÇÃO ---
+
 
     public function getPrivateAvatarUrlAttribute(): string
     {

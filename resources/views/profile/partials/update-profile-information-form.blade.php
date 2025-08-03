@@ -100,14 +100,35 @@
             <x-input-error class="mt-2" :messages="$errors->get('whatsapp')" />
         </div>
 
-        {{-- Descrição --}}
+        {{-- Descrição com Limite Dinâmico --}}
         <div>
-            <x-input-label for="descricao" value="Descrição" />
-            <textarea id="descricao" name="descricao" required class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full">{{ old('descricao', $acompanhante->descricao) }}</textarea>
+            @php
+                // A variável $descricaoLimit vem do ProfileController@edit
+                $label = 'Descrição';
+                if (isset($descricaoLimit)) {
+                    $label .= " (Limite: {$descricaoLimit} caracteres)";
+                } else {
+                    $label .= " (Ilimitado)";
+                }
+            @endphp
+            <x-input-label for="descricao" :value="$label" />
+            
+            <div x-data="{ count: {{ strlen(old('descricao', $acompanhante->descricao)) }}, limit: {{ $descricaoLimit ?? 'null' }} }">
+                <textarea id="descricao" name="descricao" required
+                    x-on:input="count = $event.target.value.length"
+                    @if(isset($descricaoLimit)) maxlength="{{ $descricaoLimit }}" @endif
+                    class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 rounded-md shadow-sm mt-1 block w-full"
+                >{{ old('descricao', $acompanhante->descricao) }}</textarea>
+                
+                <p x-show="limit" class="text-right text-sm text-gray-500 mt-1" :class="{ 'text-red-500': count > limit }">
+                    <span x-text="count"></span> / <span x-text="limit"></span>
+                </p>
+            </div>
+            
             <x-input-error class="mt-2" :messages="$errors->get('descricao')" />
         </div>
 
-        {{-- Valor por Hora (Agora Opcional) --}}
+        {{-- Valor por Hora (Opcional) --}}
         <div>
             <x-input-label for="valor_hora" value="Valor por Hora (Opcional, Ex: 150.00)" />
             <x-text-input id="valor_hora" name="valor_hora" type="text" class="mt-1 block w-full" :value="old('valor_hora', $acompanhante->valor_hora)" />
@@ -165,6 +186,38 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // ... (o seu script de cidades continua igual)
+        const estadoSelect = document.getElementById('estado_id');
+        const cidadeSelect = document.getElementById('cidade_id');
+
+        estadoSelect.addEventListener('change', function () {
+            const estadoId = this.value;
+            cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+            cidadeSelect.disabled = true;
+
+            if (!estadoId) {
+                cidadeSelect.innerHTML = '<option value="">Selecione um estado primeiro</option>';
+                return;
+            }
+
+            fetch(`/api/cidades/${estadoId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Erro na resposta da rede');
+                    return response.json();
+                })
+                .then(data => {
+                    cidadeSelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
+                    data.forEach(cidade => {
+                        const option = document.createElement('option');
+                        option.value = cidade.id;
+                        option.textContent = cidade.nome;
+                        cidadeSelect.appendChild(option);
+                    });
+                    cidadeSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar cidades:', error);
+                    cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+                });
+        });
     });
 </script>
