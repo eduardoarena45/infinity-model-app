@@ -7,7 +7,8 @@ use App\Models\Servico;
 use App\Models\Cidade;
 use App\Models\Estado;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache; // Adicione esta linha
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB; // Adicione esta linha
 
 class VitrineController extends Controller
 {
@@ -39,22 +40,53 @@ class VitrineController extends Controller
         // Guarda os dados da vitrine no cache por 1 hora
         $dadosVitrine = Cache::remember($cacheKey, 3600, function () use ($request, $genero, $cidadeNome) {
             
+            // --- INÍCIO DA NOVA LÓGICA DE ORDENAÇÃO COM PRIORIDADE ---
+
+            // Cria uma "semente" única para a semana atual (ex: "2025-32")
+            $seed = date('Y-W');
+
             $baseQuery = Acompanhante::query()
-                ->where('genero', $genero)
+                ->select('acompanhantes.*') // Seleciona explicitamente as colunas de acompanhantes
+                // Junta as tabelas para aceder à prioridade do plano ativo
+                ->leftJoin('users', 'acompanhantes.user_id', '=', 'users.id')
+                ->leftJoin('assinaturas', function ($join) {
+                    $join->on('users.id', '=', 'assinaturas.user_id')
+                         ->where('assinaturas.status', '=', 'ativa')
+                         ->where('assinaturas.data_fim', '>', now());
+                })
+                ->leftJoin('planos', 'assinaturas.plano_id', '=', 'planos.id')
+                // Filtros principais
+                ->where('acompanhantes.genero', $genero)
                 ->whereHas('cidade', function ($query) use ($cidadeNome) {
                     $query->where('nome', $cidadeNome);
                 })
-                ->where('status', 'aprovado');
+                ->where('acompanhantes.status', 'aprovado');
 
             if ($request->filled('servicos')) {
                 $servicosSelecionados = $request->servicos;
+                // O whereHas é aplicado na query principal
                 $baseQuery->whereHas('servicos', function ($q) use ($servicosSelecionados) {
                     $q->whereIn('servicos.id', $servicosSelecionados);
                 });
             }
 
-            $destaques = (clone $baseQuery)->where('is_featured', true)->latest()->get();
-            $acompanhantesNormais = (clone $baseQuery)->where('is_featured', false)->latest()->paginate(12)->withQueryString();
+            // Ordena primeiro pela prioridade do plano (menor número = mais alto)
+            // Perfis sem plano ativo recebem prioridade 999 (vão para o fim)
+            // Depois, aplica o rodízio aleatório semanal
+            $destaques = (clone $baseQuery)
+                ->where('acompanhantes.is_featured', true)
+                ->orderByRaw('IFNULL(planos.prioridade, 999) ASC')
+                ->inRandomOrder($seed)
+                ->get();
+                
+            $acompanhantesNormais = (clone $baseQuery)
+                ->where('acompanhantes.is_featured', false)
+                ->orderByRaw('IFNULL(planos.prioridade, 999) ASC')
+                ->inRandomOrder($seed)
+                ->paginate(12)
+                ->withQueryString();
+            
+            // --- FIM DA NOVA LÓGICA ---
             
             return ['destaques' => $destaques, 'acompanhantes' => $acompanhantesNormais];
         });

@@ -23,6 +23,7 @@ class Plano extends Model
         'limite_videos',
         'destaque',
         'permite_videos',
-        'limite_descricao', // <-- Adicionado
+        'limite_descricao',
+        'prioridade', // <-- Adicionado
     ];
 }

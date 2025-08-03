@@ -57,11 +57,10 @@ class PlanoResource extends Resource
                             ->default(0)
                             ->helperText('Número de vídeos permitidos na galeria.'),
                         
-                        // --- NOVO CAMPO ADICIONADO AQUI ---
                         Forms\Components\TextInput::make('limite_descricao')
                             ->label('Limite de Caracteres na Descrição')
                             ->numeric()
-                            ->nullable() // Permite que o campo fique vazio
+                            ->nullable()
                             ->helperText('Deixe em branco ou 0 para ilimitado.'),
 
                     ])->columns(2),
@@ -76,7 +75,15 @@ class PlanoResource extends Resource
                         Forms\Components\Toggle::make('permite_videos')
                             ->label('Permitir Vídeos na Galeria?')
                             ->required(),
-                    ])->columns(2),
+
+                        // --- NOVO CAMPO DE PRIORIDADE ADICIONADO AQUI ---
+                        Forms\Components\TextInput::make('prioridade')
+                            ->label('Prioridade de Exibição')
+                            ->numeric()
+                            ->required()
+                            ->default(99)
+                            ->helperText('Menor número = maior prioridade. Ex: 1 para Premium, 10 para Básico.'),
+                    ])->columns(3), // Ajustado para 3 colunas para melhor layout
             ]);
     }
 
@@ -86,14 +93,19 @@ class PlanoResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nome')->searchable(),
                 Tables\Columns\TextColumn::make('preco')->money('BRL')->sortable(),
+                
+                // --- NOVA COLUNA DE PRIORIDADE ADICIONADA AQUI ---
+                Tables\Columns\TextColumn::make('prioridade')
+                    ->label('Prioridade')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('limite_fotos')->label('Limite de Fotos')->sortable(),
                 Tables\Columns\TextColumn::make('limite_videos')->label('Limite de Vídeos')->sortable(),
                 
-                // --- NOVA COLUNA ADICIONADA AQUI ---
                 Tables\Columns\TextColumn::make('limite_descricao')
                     ->label('Limite Descrição')
                     ->sortable()
-                    ->formatStateUsing(fn (?int $state) => $state ?: 'Ilimitado'), // Mostra 'Ilimitado' se for nulo ou 0
+                    ->formatStateUsing(fn (?int $state) => $state ?: 'Ilimitado'),
 
                 Tables\Columns\IconColumn::make('destaque')->label('Destaque')->boolean(),
                 Tables\Columns\IconColumn::make('permite_videos')->label('Permite Vídeos')->boolean(),
