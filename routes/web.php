@@ -5,7 +5,7 @@ use App\Http\Controllers\PlanoController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VitrineController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\DisponibilidadeController; // Adicione esta linha
+use App\Http\Controllers\DisponibilidadeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -37,7 +37,7 @@ Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstad
 
 // --- ROTAS PRIVADAS (PARA UTILIZADORAS LOGADAS) ---
 Route::middleware('auth')->group(function () {
-    
+
     // ROTA DO DASHBOARD ATUALIZADA COM A LÓGICA DAS ESTATÍSTICAS
     Route::get('/dashboard', function () {
         $user = Auth::user();
@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function () {
             ->orderBy('date', 'ASC')
             ->get()
             ->pluck('count', 'date');
-        
+
         // Preencher os dias sem visualizações com 0
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
@@ -95,6 +95,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/disponibilidade', [DisponibilidadeController::class, 'edit'])->name('disponibilidade.edit');
     Route::post('/disponibilidade', [DisponibilidadeController::class, 'update'])->name('disponibilidade.update');
 });
+
+// =======================================================================
+// INÍCIO DO CÓDIGO ADICIONADO
+// =======================================================================
+
+// --- ROTAS DO PAINEL ADMIN (GUNODIGITAL) ---
+// Adicionando as rotas que faltavam para gerenciar estados e cidades
+Route::middleware(['auth'])->prefix('guno')->name('guno.')->group(function () {
+    Route::resource('estados', LocalController::class);
+    Route::post('estados/{estado}/cidades', [LocalController::class, 'storeCidade'])->name('cidades.store');
+    Route::delete('cidades/{cidade}', [LocalController::class, 'destroyCidade'])->name('cidades.destroy');
+});
+
+// =======================================================================
+// FIM DO CÓDIGO ADICIONADO
+// =======================================================================
 
 
 // Inclui as rotas de autenticação

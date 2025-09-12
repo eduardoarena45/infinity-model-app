@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Cria a tabela de Estados
+        // Cria a tabela de Estados (VAZIA)
         Schema::create('estados', function (Blueprint $table) {
             $table->id();
             $table->string('nome');
             $table->string('uf', 2);
         });
 
-        // Cria a tabela de Cidades
+        // Cria a tabela de Cidades (VAZIA)
         Schema::create('cidades', function (Blueprint $table) {
             $table->id();
             $table->foreignId('estado_id')->constrained('estados')->onDelete('cascade');

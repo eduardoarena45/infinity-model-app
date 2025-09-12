@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,19 +11,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Cria o seu utilizador Administrador.
-        User::factory()->create([
-            'name' => 'eduardo',
-            'email' => 'eduardo.arena45@gmail.com',
-            'password' => Hash::make('eduardo255035'),
-            'is_admin' => true,
-        ]);
-
-        // 2. Roda os seeders para criar os dados essenciais.
-        $this->call([
-            ServicoSeeder::class,
-            // A linha 'LocaisSeeder::class,' foi removida.
-            PlanosSeeder::class,
-        ]);
+        // Esta função foi intencionalmente deixada vazia para
+        // garantir que NENHUM dado seja criado automaticamente.
+        // O controlo agora é 100% manual através do painel.
     }
-}
