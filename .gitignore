@@ -13,11 +13,20 @@ Thumbs.db
 /public/storage
 
 # Laravel - Arquivos de Cache e Sessão do Storage
-# Esta seção resolve o seu problema principal e previne outros!
-/storage/framework/cache/
-/storage/framework/sessions/
-/storage/framework/testing/
-/storage/framework/views/
+# --- ESTA É A SECÇÃO CORRIGIDA ---
+# Ignora o conteúdo das pastas, MAS PERMITE os ficheiros .gitkeep
+/storage/app
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitkeep
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitkeep
+/storage/framework/testing/*
+!/storage/framework/testing/.gitkeep
+/storage/framework/views/*
+!/storage/framework/views/.gitkeep
+/storage/logs
+!/storage/logs/.gitkeep
+# --- FIM DA CORREÇÃO ---
 /storage/*.key
 /storage/pail
 
