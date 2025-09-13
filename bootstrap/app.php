@@ -10,9 +10,13 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
-        //
+    ->withMiddleware(function (Middleware $middleware) {
+        // --- INÍCIO DA CORREÇÃO FINAL ---
+        // Esta linha diz ao Laravel para confiar nos servidores proxy (como os do Forge).
+        // Isto é essencial para que as sessões e a segurança (CSRF) funcionem corretamente em produção com HTTPS.
+        $middleware->trustProxies(at: '*');
+        // --- FIM DA CORREÇÃO FINAL ---
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
+    ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
