@@ -102,7 +102,7 @@ Route::middleware('auth')->group(function () {
 
 // --- ROTAS DO PAINEL ADMIN (GUNODIGITAL) ---
 // Adicionando as rotas que faltavam para gerenciar estados e cidades
-Route::middleware(['auth'])->prefix('guno')->name('guno.')->group(function () {
+Route::middleware(['auth'])->prefix('guns')->name('guns.')->group(function () {
     Route::resource('estados', LocalController::class);
     Route::post('estados/{estado}/cidades', [LocalController::class, 'storeCidade'])->name('cidades.store');
     Route::delete('cidades/{cidade}', [LocalController::class, 'destroyCidade'])->name('cidades.destroy');
