@@ -11,12 +11,18 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // --- INÍCIO DA CORREÇÃO FINAL ---
         // Esta linha diz ao Laravel para confiar nos servidores proxy (como os do Forge).
-        // Isto é essencial para que as sessões e a segurança (CSRF) funcionem corretamente em produção com HTTPS.
         $middleware->trustProxies(at: '*');
-        // --- FIM DA CORREÇÃO FINAL ---
+
+        // --- INÍCIO DA CORREÇÃO ---
+        // Esta linha regista o nosso novo "segurança" de administrador
+        // com o apelido 'admin', para que o possamos usar nas nossas rotas.
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+        ]);
+        // --- FIM DA CORREÇÃO ---
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+
