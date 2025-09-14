@@ -18,7 +18,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-// Adicione as duas linhas 'use' abaixo
 use Illuminate\Contracts\View\View;
 use Filament\Support\Facades\FilamentView;
 
@@ -64,8 +63,9 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             // --- INÍCIO DA CORREÇÃO DEFINITIVA ---
-            // Adicionamos o nosso "segurança" 'admin' aqui,
-            // que é o método compatível com a sua versão do Filament.
+            // Adicionamos o nosso "segurança" 'admin' aqui.
+            // Ele irá garantir que apenas utilizadores com 'is_admin = true'
+            // possam aceder a qualquer parte deste painel.
             ->authMiddleware([
                 Authenticate::class,
                 'admin',
