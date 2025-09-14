@@ -64,11 +64,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                'admin',
             ])
             // --- INÍCIO DA CORREÇÃO DEFINITIVA ---
             // Esta linha adiciona a regra de segurança que faltava.
             // Ela diz: "Apenas permita o acesso a este painel se o
             // utilizador logado tiver a propriedade 'is_admin' como verdadeira."
-            ->canAccessPanel(fn (User $user): bool => $user->is_admin);
     }
 }
