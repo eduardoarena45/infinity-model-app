@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('guns') 
+            ->path('admin')
             ->login()
             // Muda o nome "Laravel" para "Infinity Model"
             ->brandName('Infinity Model')
