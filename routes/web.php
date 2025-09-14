@@ -104,11 +104,7 @@ Route::middleware('auth')->group(function () {
 // --- INÍCIO DA CORREÇÃO ---
 // Adicionando o 'middleware' de admin para garantir que apenas administradores
 // possam aceder a estas rotas, depois de estarem logados.
-Route::middleware(['auth', 'admin'])->prefix('guns')->name('guns.')->group(function () {
-    Route::resource('estados', LocalController::class);
-    Route::post('estados/{estado}/cidades', [LocalController::class, 'storeCidade'])->name('cidades.store');
-    Route::delete('cidades/{cidade}', [LocalController::class, 'destroyCidade'])->name('cidades.destroy');
-});
+
 // --- FIM DA CORREÇÃO ---
 
 // =======================================================================
