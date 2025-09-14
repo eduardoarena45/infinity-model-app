@@ -2,7 +2,7 @@
 
 namespace App\Providers\Filament;
 
-use App\Models\User; // <-- Linha de 'use' necessária
+use App\Models\User;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -18,6 +18,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+// Adicione as duas linhas 'use' abaixo
 use Illuminate\Contracts\View\View;
 use Filament\Support\Facades\FilamentView;
 
@@ -62,13 +63,14 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            // --- INÍCIO DA CORREÇÃO DEFINITIVA ---
+            // Adicionamos o nosso "segurança" 'admin' aqui,
+            // que é o método compatível com a sua versão do Filament.
             ->authMiddleware([
                 Authenticate::class,
                 'admin',
-            ])
-            // --- INÍCIO DA CORREÇÃO DEFINITIVA ---
-            // Esta linha adiciona a regra de segurança que faltava.
-            // Ela diz: "Apenas permita o acesso a este painel se o
-            // utilizador logado tiver a propriedade 'is_admin' como verdadeira."
+            ]);
+            // --- FIM DA CORREÇÃO DEFINITIVA ---
     }
 }
+
