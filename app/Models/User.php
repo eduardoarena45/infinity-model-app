@@ -11,7 +11,13 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Plano;
 
-class User extends Authenticatable implements MustVerifyEmail
+// --- INÍCIO DA CORREÇÃO ---
+// Adicionamos as duas linhas abaixo para ensinar o User a "falar a língua" do Filament
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+// --- FIM DA CORREÇÃO ---
+
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser // <-- Adicionamos FilamentUser aqui
 {
     use HasFactory, Notifiable;
 
@@ -34,6 +40,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_admin' => 'boolean',
     ];
 
+    // --- INÍCIO DA CORREÇÃO DEFINITIVA ---
+    // Esta função é a "lei" que o Filament irá usar. Ela responde à pergunta:
+    // "Este utilizador pode aceder ao painel de administração?"
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->is_admin;
+    }
+    // --- FIM DA CORREÇÃO DEFINITIVA ---
+
     public function acompanhante(): HasOne
     {
         return $this->hasOne(Acompanhante::class);
@@ -43,10 +58,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function assinaturaAtiva(): HasOne
     {
         return $this->hasOne(Assinatura::class)
-                    ->where('status', 'ativa')
-                    ->where('data_fim', '>', now());
+                        ->where('status', 'ativa')
+                        ->where('data_fim', '>', now());
     }
-    
+
     /**
      * Get all of the subscriptions for the user.
      * ESTA É A NOVA FUNÇÃO QUE FALTAVA
@@ -80,7 +95,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->assinaturaAtiva && $this->assinaturaAtiva->plano) {
             return $this->assinaturaAtiva->plano->limite_videos;
         }
-        
+
         // Se não tiver assinatura ativa, busca o limite do plano Grátis.
         $planoGratis = Plano::where('slug', 'gratis')->first();
         return $planoGratis ? $planoGratis->limite_videos : 0; // Padrão 0 para vídeos no plano grátis
@@ -94,7 +109,7 @@ class User extends Authenticatable implements MustVerifyEmail
             // Retorna o limite do plano ativo. Se for 0 ou nulo, retorna null (ilimitado).
             return $this->assinaturaAtiva->plano->limite_descricao ?: null;
         }
-        
+
         // Se não tiver assinatura ativa, busca o limite do plano Grátis.
         $planoGratis = Plano::where('slug', 'gratis')->first();
         return $planoGratis ? $planoGratis->limite_descricao : null;
@@ -110,3 +125,4 @@ class User extends Authenticatable implements MustVerifyEmail
         return 'https://placehold.co/100x100/4E2A51/FFFFFF?text=IM';
     }
 }
+
