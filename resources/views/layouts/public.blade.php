@@ -27,7 +27,7 @@
         </style>
     </head>
     <body class="bg-gray-100 dark:bg-gray-900 text-[--color-neutral] dark:text-gray-300">
-        
+
         {{-- AVISO DE IDADE --}}
         <div id="age-gate-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-90 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
             <div class="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-2xl text-center max-w-md mx-4 border border-gray-200 dark:border-slate-700 transform transition-all scale-95 opacity-0" id="age-gate-modal">
@@ -50,7 +50,7 @@
                 </div>
             </div>
         </div>
-    
+
         {{-- NAVEGAÇÃO --}}
         <nav class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -96,7 +96,7 @@
                     <a href="{{ route('privacidade') }}" class="text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white">Política de Privacidade</a>
                 </div>
                 <div class="mt-8 text-center">
-                    <p class="text-center text-base text-gray-400">&copy; {{ date('Y') }} Infinity Model. Todos os direitos reservados.</p>
+                    <p class="text-center text-base text-gray-400">&copy; {{ date('Y') }} Infinity Model. All rights reserved.</p>
                 </div>
             </div>
         </footer>
