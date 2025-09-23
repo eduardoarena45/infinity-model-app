@@ -14,13 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
         // Esta linha diz ao Laravel para confiar nos servidores proxy (como os do Forge).
         $middleware->trustProxies(at: '*');
 
-        // --- INÍCIO DA CORREÇÃO ---
-        // Esta linha regista o nosso novo "segurança" de administrador
-        // com o apelido 'admin', para que o possamos usar nas nossas rotas.
+        // Adicionamos os nossos "seguranças" personalizados à lista de apelidos.
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'nocache' => \App\Http\Middleware\PreventBrowserCaching::class,
+
+            // =======================================================================
+            // ================ ESTA É A NOVA LINHA ADICIONADA =======================
+            // Registamos o guardião que verifica se o onboarding foi concluído.
+            'onboarding.check' => \App\Http\Middleware\CheckOnboardingStatus::class,
+            // =======================================================================
         ]);
-        // --- FIM DA CORREÇÃO ---
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
