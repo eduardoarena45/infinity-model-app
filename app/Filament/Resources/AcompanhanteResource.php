@@ -7,8 +7,8 @@ use App\Filament\Resources\AcompanhanteResource\RelationManagers;
 use App\Models\Acompanhante;
 use App\Models\Cidade;
 use App\Models\Estado;
-use App\Models\User; // Adicione esta linha
-use App\Notifications\PerfilAprovadoNotification; // Adicione esta linha
+use App\Models\User;
+use App\Notifications\PerfilAprovadoNotification;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -27,6 +27,9 @@ class AcompanhanteResource extends Resource
 
     public static function form(Form $form): Form
     {
+        // =======================================================
+        // ============= CÓDIGO DO FORMULÁRIO RESTAURADO =============
+        // =======================================================
         return $form
             ->schema([
                 Forms\Components\Section::make('Gestão e Status')
@@ -34,8 +37,7 @@ class AcompanhanteResource extends Resource
                         Forms\Components\Select::make('user_id')->relationship('user', 'name')->searchable()->preload()->required()->disabledOn('edit'),
                         Forms\Components\Toggle::make('is_verified')->label('Perfil Verificado'),
                         Forms\Components\Toggle::make('is_featured')->label('Perfil em Destaque'),
-                        
-                        // CAMPO DE STATUS COM A LÓGICA DE NOTIFICAÇÃO
+
                         Forms\Components\Select::make('status')
                             ->options([
                                 'pendente' => 'Pendente',
@@ -43,11 +45,9 @@ class AcompanhanteResource extends Resource
                                 'rejeitado' => 'Rejeitado',
                             ])
                             ->required()
-                            ->live() // Adicionado para garantir que o hook seja disparado em tempo real
+                            ->live()
                             ->afterStateUpdated(function ($state, $record) {
-                                // Verifica se o novo estado é 'aprovado'
                                 if ($state === 'aprovado') {
-                                    // Encontra o utilizador associado à acompanhante e envia a notificação
                                     $user = User::find($record->user_id);
                                     if ($user) {
                                         $user->notify(new PerfilAprovadoNotification());
@@ -59,7 +59,7 @@ class AcompanhanteResource extends Resource
                 Forms\Components\Section::make('Dados Públicos')
                     ->schema([
                         Forms\Components\TextInput::make('nome_artistico')->required()->maxLength(255),
-                        
+
                         Forms\Components\Select::make('genero')
                             ->options([
                                 'mulher' => 'Mulher',
@@ -70,7 +70,7 @@ class AcompanhanteResource extends Resource
 
                         Forms\Components\DatePicker::make('data_nascimento')->required(),
                         Forms\Components\Textarea::make('descricao')->required()->columnSpanFull(),
-                        
+
                         Forms\Components\Select::make('estado_id')
                             ->label('Estado')
                             ->options(Estado::all()->pluck('nome', 'id'))
@@ -91,12 +91,12 @@ class AcompanhanteResource extends Resource
 
                         Forms\Components\TextInput::make('whatsapp')->tel()->required(),
                         Forms\Components\TextInput::make('valor_hora')->numeric()->prefix('R$')->required(),
-                        
+
                         Forms\Components\CheckboxList::make('servicos')
                             ->relationship('servicos', 'nome')
                             ->columns(3)
                     ])->columns(2),
-                
+
                 Forms\Components\Section::make('Verificação de Identidade')
                     ->description('Esta informação é privada e não será exibida publicamente.')
                     ->schema([
@@ -108,7 +108,7 @@ class AcompanhanteResource extends Resource
                             ->image()
                             ->imageEditor(),
                     ]),
-                
+
                 Forms\Components\Section::make('Mídia')
                     ->schema([
                         Forms\Components\FileUpload::make('foto_principal_path')
@@ -120,6 +120,9 @@ class AcompanhanteResource extends Resource
 
     public static function table(Table $table): Table
     {
+        // =======================================================
+        // ============== CÓDIGO DA TABELA RESTAURADO ==============
+        // =======================================================
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('foto_principal_path')
@@ -127,7 +130,7 @@ class AcompanhanteResource extends Resource
                     ->disk('public')
                     ->circular(),
                 Tables\Columns\TextColumn::make('nome_artistico')->searchable(),
-                
+
                 Tables\Columns\TextColumn::make('genero')
                     ->searchable()
                     ->badge(),
@@ -151,14 +154,14 @@ class AcompanhanteResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getRelations(): array
     {
         return [
             RelationManagers\MidiasRelationManager::class,
         ];
     }
-    
+
     public static function getPages(): array
     {
         return [
@@ -166,5 +169,18 @@ class AcompanhanteResource extends Resource
             'create' => Pages\CreateAcompanhante::route('/create'),
             'edit' => Pages\EditAcompanhante::route('/{record}/edit'),
         ];
-    }       
+    }
+
+    // A nossa nova funcionalidade do "sininho" continua aqui, intacta.
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('status', 'pendente')->count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null
+    {
+        return static::getModel()::where('status', 'pendente')->count() > 0
+            ? 'warning'
+            : 'success';
+    }
 }
