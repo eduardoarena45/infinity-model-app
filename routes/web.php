@@ -25,19 +25,25 @@ Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('
 Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
 Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstado'])->name('api.cidades');
 
+// =======================================================
+// =================== INÍCIO DA ADIÇÃO ==================
+// =======================================================
+// Nova rota de API para carregar as fotos da galeria de um perfil específico para o carrossel.
+Route::get('/api/acompanhante/{acompanhante}/galeria', [VitrineController::class, 'getGaleriaFotos'])->name('api.acompanhante.galeria');
+// =======================================================
+// ==================== FIM DA ADIÇÃO ====================
+// =======================================================
+
 
 // --- ROTAS PRIVADAS (PARA UTILIZADORAS LOGADAS) ---
 Route::middleware(['auth', 'nocache'])->group(function () {
 
     // --- GRUPO 1: ROTAS DO FUNIL DE ONBOARDING ---
-    // Estas rotas são acessíveis a qualquer usuário logado que AINDA NÃO tenha uma assinatura ativa.
     Route::get('/escolher-plano', [PlanoController::class, 'selecionar'])->name('planos.selecionar');
     Route::post('/assinar-plano/{plano}', [PlanoController::class, 'assinar'])->name('planos.assinar');
     Route::get('/planos/pagamento/{assinatura}', [PlanoController::class, 'mostrarPagamento'])->name('planos.pagamento');
 
     // --- GRUPO 2: ROTAS DO PAINEL PRINCIPAL ---
-    // O nosso novo guardião 'onboarding.check' protege este grupo.
-    // Só é possível aceder a estas rotas DEPOIS de ter uma assinatura ativa.
     Route::middleware('onboarding.check')->group(function () {
 
         Route::get('/dashboard', function () {

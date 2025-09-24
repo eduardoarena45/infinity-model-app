@@ -49,18 +49,12 @@ class VitrineController extends Controller
                          });
                 })
                 ->leftJoin('planos', 'assinaturas.plano_id', '=', 'planos.id')
-                // Filtros principais
                 ->where('acompanhantes.genero', $genero)
                 ->whereHas('cidade', function ($query) use ($cidadeNome) {
                     $query->where('nome', $cidadeNome);
                 })
                 ->where('acompanhantes.status', 'aprovado');
 
-            // =======================================================
-            // === INÍCIO DA ADIÇÃO DA REGRA DE NEGÓCIO (PERFIL COMPLETO) ===
-            // =======================================================
-
-            // Garante que só aparecem perfis que têm todos os campos obrigatórios preenchidos
             $baseQuery->whereNotNull('acompanhantes.nome_artistico')
                       ->whereNotNull('acompanhantes.foto_principal_path')
                       ->whereNotNull('acompanhantes.cidade_id')
@@ -68,15 +62,9 @@ class VitrineController extends Controller
                       ->whereNotNull('acompanhantes.whatsapp')
                       ->whereNotNull('acompanhantes.valor_hora');
 
-            // A regra final e mais importante: o perfil DEVE ter pelo menos uma foto na galeria.
             $baseQuery->whereHas('midias', function ($query) {
                 $query->where('type', 'image');
             });
-
-            // =======================================================
-            // ==== FIM DA ADIÇÃO DA REGRA DE NEGÓCIO (PERFIL COMPLETO) ====
-            // =======================================================
-
 
             if ($request->filled('servicos')) {
                 $servicosSelecionados = $request->servicos;
@@ -118,8 +106,6 @@ class VitrineController extends Controller
      */
     public function show(Acompanhante $acompanhante)
     {
-        // A lógica do método show() não precisa de ser alterada, mas podemos adicionar
-        // uma verificação extra para garantir que o perfil está completo.
         if ($acompanhante->status !== 'aprovado' || !$acompanhante->isPubliclyReady()) {
             abort(404);
         }
@@ -159,4 +145,33 @@ class VitrineController extends Controller
 
         return back()->with('success', 'Sua avaliação foi enviada para moderação. Obrigado!');
     }
+
+    // =======================================================
+    // =================== INÍCIO DA ADIÇÃO ==================
+    // =======================================================
+    /**
+     * Retorna as fotos da galeria de uma acompanhante para o carrossel.
+     * Esta é uma rota de API.
+     */
+    public function getGaleriaFotos(Acompanhante $acompanhante)
+    {
+        // Carrega as mídias da galeria que são imagens e estão aprovadas
+        $fotos = $acompanhante->midias()
+            ->where('type', 'image')
+            ->where('status', 'aprovado') // Garante que só mostramos fotos aprovadas
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Mapeia a coleção para retornar apenas as URLs públicas das imagens
+        $urls = $fotos->map(function ($media) {
+            return asset('storage/' . $media->path);
+        });
+
+        // Retorna a lista de URLs como uma resposta JSON
+        return response()->json($urls);
+    }
+    // =======================================================
+    // ==================== FIM DA ADIÇÃO ====================
+    // =======================================================
 }
+
