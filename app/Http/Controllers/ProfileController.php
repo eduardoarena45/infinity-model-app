@@ -29,7 +29,7 @@ class ProfileController extends Controller
         try {
             $marcaDagua = imagecreatefrompng($marcaDaguaPath);
             $extensao = strtolower($extensaoOriginal);
-            
+
             $imagem = null;
             switch ($extensao) {
                 case 'jpg':
@@ -49,7 +49,7 @@ class ProfileController extends Controller
             if ($imagem === false) {
                 return file_get_contents($caminhoImagemParaProcessar);
             }
-            
+
             $margem = 20;
             $marcaLargura = imagesx($marcaDagua);
             $marcaAltura = imagesy($marcaDagua);
@@ -85,8 +85,6 @@ class ProfileController extends Controller
             $cidades = $acompanhante->cidade->estado->cidades()->orderBy('nome')->get();
         }
 
-        // --- LÓGICA ADICIONADA AQUI ---
-        // Passa o limite de descrição para a view
         $descricaoLimit = $user->getDescricaoLimit();
 
         return view('profile.edit', [
@@ -96,7 +94,7 @@ class ProfileController extends Controller
             'cidades' => $cidades,
             'servicos' => $servicos,
             'servicosAtuais' => $servicosAtuais,
-            'descricaoLimit' => $descricaoLimit, // <-- Passa a variável para a view
+            'descricaoLimit' => $descricaoLimit,
         ]);
     }
 
@@ -105,31 +103,52 @@ class ProfileController extends Controller
         $user = $request->user();
         $acompanhante = $user->acompanhante;
 
-        // --- LÓGICA DE VALIDAÇÃO DINÂMICA PARA DESCRIÇÃO ---
+        // --- INÍCIO DA CORREÇÃO DA VALIDAÇÃO ---
+
         $descricaoLimit = $user->getDescricaoLimit();
         $descricaoRules = ['required', 'string'];
         if ($descricaoLimit) {
             $descricaoRules[] = 'max:' . $descricaoLimit;
         }
-        // --- FIM DA LÓGICA ---
 
         $request->validate([
+            // Campos de texto obrigatórios
             'nome_artistico' => ['required', 'string', 'max:255'],
-            'data_nascimento' => ['required', 'date'],
+            'data_nascimento' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
             'cidade_id' => ['required', 'exists:cidades,id'],
             'whatsapp' => ['required', 'string', 'max:20'],
-            'descricao' => $descricaoRules, // <-- Regra dinâmica aplicada aqui
             'genero' => ['required', 'string', 'in:mulher,homem,trans'],
-            'valor_hora' => ['nullable', 'numeric', 'min:0'],
+            'valor_hora' => ['required', 'numeric', 'min:0'],
+            'descricao' => $descricaoRules,
+
+            // Fotos são obrigatórias APENAS se ainda não existirem
+            'foto_principal' => [
+                $acompanhante->foto_principal_path ? 'nullable' : 'required',
+                'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'
+            ],
+            'foto_verificacao' => [
+                $acompanhante->foto_verificacao_path ? 'nullable' : 'required',
+                'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'
+            ],
+
+            // Campos opcionais
             'valor_15_min' => ['nullable', 'numeric', 'min:0'],
             'valor_30_min' => ['nullable', 'numeric', 'min:0'],
             'valor_pernoite' => ['nullable', 'numeric', 'min:0'],
             'servicos' => ['nullable', 'array'],
             'servicos.*' => ['exists:servicos,id'],
-            'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'foto_verificacao' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+        ], [
+            // Mensagens personalizadas em português
+            'required' => 'O campo :attribute é obrigatório.',
+            'date' => 'O campo :attribute deve ser uma data válida.',
+            'before_or_equal' => 'Você deve ter pelo menos 18 anos.',
+            'image' => 'O ficheiro deve ser uma imagem.',
+            'mimes' => 'A imagem deve ser do tipo: :values.',
+            'max' => 'O ficheiro não pode ser maior que :max kilobytes.',
         ]);
-        
+
+        // --- FIM DA CORREÇÃO DA VALIDAÇÃO ---
+
         $jaFoiAprovado = in_array($acompanhante->getOriginal('status'), ['aprovado', 'rejeitado']);
         $requerModeracaoDeImagem = $request->hasFile('foto_principal') || $request->hasFile('foto_verificacao');
 
@@ -164,8 +183,8 @@ class ProfileController extends Controller
 
         $acompanhante->save();
         $acompanhante->servicos()->sync($request->input('servicos', []));
-        
-        Cache::flush(); // Limpa o cache para garantir que a vitrine atualize
+
+        Cache::flush();
 
         return back()->with('status', 'profile-updated');
     }
@@ -193,7 +212,7 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         $media = $user->media()->orderBy('created_at', 'desc')->get();
-        
+
         $photo_count = $media->where('type', 'image')->count();
         $photo_limit = $user->getPhotoLimit();
 
@@ -208,7 +227,7 @@ class ProfileController extends Controller
             'video_limit' => $video_limit,
         ]);
     }
-    
+
     public function uploadGaleria(Request $request): RedirectResponse
     {
         $user = auth()->user();
@@ -224,19 +243,19 @@ class ProfileController extends Controller
         if ($request->hasFile('fotos')) {
             foreach ($request->file('fotos') as $file) {
                 $nomeArquivo = 'galerias/' . $user->id . '/' . Str::random(40) . '.jpg';
-                
+
                 $imagemComMarca = $this->aplicarMarcaDagua($file->getRealPath(), $file->getClientOriginalExtension());
                 Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
 
                 Media::create([
-                    'user_id' => $user->id, 
-                    'type' => 'image', 
-                    'path' => $nomeArquivo, 
+                    'user_id' => $user->id,
+                    'type' => 'image',
+                    'path' => $nomeArquivo,
                     'status' => 'pendente'
                 ]);
             }
             $user->acompanhante->update(['status' => 'pendente']);
-            Cache::flush(); // Limpa o cache
+            Cache::flush();
         }
         return back()->with('status', 'gallery-updated')->with('success_message', 'Fotos enviadas com sucesso!');
     }
@@ -251,7 +270,7 @@ class ProfileController extends Controller
         Storage::disk('public')->delete($media->path);
 
         $media->delete();
-        Cache::flush(); // Limpa o cache
+        Cache::flush();
         return back()->with('status', 'gallery-updated')->with('success_message', 'Mídia removida!');
     }
 
@@ -285,7 +304,7 @@ class ProfileController extends Controller
                     $imagemComMarca = $this->aplicarMarcaDagua($thumbnailFullPath, 'jpg');
                     Storage::disk('public')->put($thumbnailRelativePath, $imagemComMarca);
                 }
-                
+
                 Media::create([
                     'user_id' => $user->id,
                     'type' => 'video',
@@ -295,7 +314,7 @@ class ProfileController extends Controller
                 ]);
             }
             $user->acompanhante->update(['status' => 'pendente']);
-            Cache::flush(); // Limpa o cache
+            Cache::flush();
         }
         return back()->with('status', 'gallery-updated')->with('success_message', 'Vídeos enviados com sucesso!');
     }

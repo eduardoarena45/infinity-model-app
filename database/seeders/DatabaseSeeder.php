@@ -11,7 +11,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Esta função foi intencionalmente deixada vazia para
-        // garantir que NENHUM dado seja criado automaticamente.
-        // O controlo agora é 100% manual através do painel.
+        // Esta é a instrução que faltava.
+        // Ela diz ao Laravel para executar o nosso PlanosSeeder
+        // e garantir que os planos são criados no banco de dados.
+        $this->call([
+            PlanosSeeder::class,
+            // Se no futuro você tiver outros seeders, pode adicioná-los aqui.
+        ]);
     }
+}

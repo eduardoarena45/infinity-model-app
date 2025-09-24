@@ -10,21 +10,22 @@
             </p>
         </header>
 
-        {{-- Mostra erros específicos do upload de fotos --}}
         @if(session('error_message') && session('type') === 'photo')
             <div class="p-4 my-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-900 dark:text-red-400" role="alert">
                 {{ session('error_message') }}
             </div>
         @endif
 
-        {{-- Formulário de Upload de Fotos --}}
         @if ($photo_count < $photo_limit)
             <form method="post" action="{{ route('galeria.upload') }}" enctype="multipart/form-data" class="mt-6 space-y-6">
                 @csrf
                 <div>
-                    <x-input-label for="fotos" :value="'Adicionar Novas Fotos (' . $photo_count . ' de ' . $photo_limit . ')'" />
+                    <x-input-label for="fotos">
+                        <span>Adicionar Novas Fotos ({{ $photo_count }} de {{ $photo_limit }})</span><span class="text-red-500 ml-1">*</span>
+                    </x-input-label>
                     <input id="fotos" name="fotos[]" type="file" class="mt-1 block w-full text-gray-900 dark:text-gray-100" multiple required accept="image/*" />
                     <x-input-error class="mt-2" :messages="$errors->get('fotos')" />
+                    <x-input-error class="mt-2" :messages="$errors->get('fotos.*')" />
                 </div>
                 <div class="flex items-center gap-4">
                     <x-primary-button>{{ __('Enviar Fotos') }}</x-primary-button>
@@ -36,12 +37,14 @@
             </div>
         @endif
 
-        {{-- Galeria de Fotos Atuais --}}
         <hr class="my-8 border-gray-200 dark:border-gray-700">
         <div>
             <h3 class="text-md font-medium text-gray-900 dark:text-gray-100">Fotos Atuais</h3>
             @if($media->where('type', 'image')->isNotEmpty())
                 <div class="mt-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {{-- ======================================================= --}}
+                    {{-- ============= INÍCIO DO CÓDIGO RESTAURADO ============== --}}
+                    {{-- ======================================================= --}}
                     @foreach($media->where('type', 'image') as $foto)
                         <div class="relative group">
                             <img src="{{ asset('storage/' . $foto->path) }}" class="rounded-lg object-cover w-full h-40" alt="Foto da galeria">
@@ -57,16 +60,18 @@
                             </div>
                         </div>
                     @endforeach
+                    {{-- ======================================================= --}}
+                    {{-- =============== FIM DO CÓDIGO RESTAURADO =============== --}}
+                    {{-- ======================================================= --}}
                 </div>
             @else
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Você ainda não possui fotos na sua galeria.</p>
+                <div class="p-4 mt-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-900 dark:text-yellow-300" role="alert">
+                    <span class="font-medium">A sua galeria está vazia!</span> É obrigatório adicionar pelo menos uma foto para que o seu perfil seja visível na vitrine.
+                </div>
             @endif
         </div>
     </div>
 
-    {{-- ======================================================= --}}
-    {{-- =================== SEÇÃO DE VÍDEOS =================== --}}
-    {{-- ======================================================= --}}
     <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
         <header>
             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">Meus Vídeos</h2>
@@ -75,15 +80,13 @@
             </p>
         </header>
 
-        {{-- Mostra erros específicos do upload de vídeos --}}
         @if(session('error_message') && session('type') === 'video')
             <div class="p-4 my-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-900 dark:text-red-400" role="alert">
                 {{ session('error_message') }}
             </div>
         @endif
 
-        {{-- Formulário de Upload de Vídeos --}}
-        @if ($video_count < $video_limit)
+        @if ($video_limit > 0 && $video_count < $video_limit)
             <form method="post" action="{{ route('galeria.upload.video') }}" enctype="multipart/form-data" class="mt-6 space-y-6">
                 @csrf
                 <div>
@@ -96,24 +99,26 @@
                 </div>
             </form>
         @else
-             <div class="p-4 mt-6 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-900 dark:text-yellow-300" role="alert">
+            <div class="p-4 mt-6 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-900 dark:text-yellow-300" role="alert">
                 @if ($video_limit > 0)
                     <span class="font-medium">Limite de vídeos atingido!</span> Você já tem {{ $video_count }} de {{ $video_limit }} vídeos permitidos.
                 @else
-                    <span class="font-medium">Plano não permite vídeos!</span> Para adicionar vídeos, futuramente você poderá fazer um upgrade de plano.
+                    <span class="font-medium">O seu plano não permite vídeos!</span> Para adicionar vídeos, você pode fazer um upgrade de plano.
                 @endif
             </div>
         @endif
-        
-        {{-- Galeria de Vídeos Atuais --}}
+
         <hr class="my-8 border-gray-200 dark:border-gray-700">
         <div>
             <h3 class="text-md font-medium text-gray-900 dark:text-gray-100">Vídeos Atuais</h3>
             @if($media->where('type', 'video')->isNotEmpty())
                 <div class="mt-4 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                     {{-- ======================================================= --}}
+                    {{-- ============= INÍCIO DO CÓDIGO RESTAURADO ============== --}}
+                    {{-- ======================================================= --}}
                     @foreach($media->where('type', 'video') as $video)
                         <div class="relative group">
-                            <video controls class="rounded-lg object-cover w-full h-40">
+                            <video controls class="rounded-lg object-cover w-full h-40 bg-black">
                                 <source src="{{ asset('storage/' . $video->path) }}" type="video/mp4">
                                 Seu navegador não suporta vídeos.
                             </video>
@@ -129,6 +134,9 @@
                             </div>
                         </div>
                     @endforeach
+                     {{-- ======================================================= --}}
+                    {{-- =============== FIM DO CÓDIGO RESTAURADO =============== --}}
+                    {{-- ======================================================= --}}
                 </div>
             @else
                 <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Você ainda não possui vídeos na sua galeria.</p>
@@ -136,10 +144,10 @@
         </div>
     </div>
 
-    {{-- Mensagem de sucesso unificada que aparece para qualquer atualização --}}
     @if (session('status') === 'gallery-updated')
         <div class="p-4 my-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-900 dark:text-green-400" role="alert">
             {{ session('success_message') }}
         </div>
     @endif
 </section>
+

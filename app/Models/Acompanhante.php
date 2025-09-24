@@ -32,7 +32,7 @@ class Acompanhante extends Model
         'is_verified',
         'is_featured',
         'status',
-        'horarios_atendimento', // <-- Adicionado
+        'horarios_atendimento',
     ];
 
     protected $casts = [
@@ -43,7 +43,7 @@ class Acompanhante extends Model
         'valor_15_min' => 'decimal:2',
         'valor_30_min' => 'decimal:2',
         'valor_pernoite' => 'decimal:2',
-        'horarios_atendimento' => 'array', // <-- Adicionado
+        'horarios_atendimento' => 'array',
     ];
 
     public function getFotoPrincipalUrlAttribute(): string
@@ -71,13 +71,8 @@ class Acompanhante extends Model
         return $this->belongsTo(Cidade::class);
     }
 
-    /**
-     * Um perfil de Acompanhante tem muitas mídias na galeria.
-     * NOME CORRIGIDO PARA 'midias' PARA FUNCIONAR COM O FILAMENT RELATION MANAGER
-     */
     public function midias(): HasMany
     {
-        // Esta relação funciona porque tanto Acompanhante quanto Media estão ligados pelo user_id
         return $this->hasMany(Media::class, 'user_id', 'user_id');
     }
 
@@ -91,12 +86,43 @@ class Acompanhante extends Model
         return $this->hasMany(Avaliacao::class);
     }
 
-    /**
-     * Get all of the profile views for the Acompanhante.
-     * ESTA É A NOVA FUNÇÃO PARA AS ESTATÍSTICAS
-     */
     public function profileViews(): HasMany
     {
         return $this->hasMany(ProfileView::class);
     }
+
+    // =======================================================
+    // =================== INÍCIO DA ADIÇÃO ==================
+    // =======================================================
+
+    /**
+     * Verifica se o perfil tem todos os dados mínimos para ser listado publicamente.
+     * Isto inclui ter pelo menos uma foto na galeria.
+     *
+     * @return bool
+     */
+    public function isPubliclyReady(): bool
+    {
+        // Verifica se os campos de texto obrigatórios estão preenchidos
+        $hasRequiredFields = $this->nome_artistico &&
+                             $this->foto_principal_path &&
+                             $this->cidade_id &&
+                             $this->descricao &&
+                             $this->whatsapp &&
+                             $this->valor_hora;
+
+        if (!$hasRequiredFields) {
+            return false;
+        }
+
+        // A verificação final e mais importante: tem pelo menos uma foto na galeria?
+        $hasGalleryPhoto = $this->midias()->where('type', 'image')->exists();
+
+        return $hasGalleryPhoto;
+    }
+
+    // =======================================================
+    // ==================== FIM DA ADIÇÃO ====================
+    // =======================================================
 }
+

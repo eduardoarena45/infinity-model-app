@@ -17,14 +17,10 @@ class VitrineController extends Controller
      */
     public function listarCidades()
     {
-        // Cache para a lista de estados por 1 hora (3600 segundos)
-        // ALTERAÇÃO: Removido o filtro que exigia perfis aprovados.
-        // Agora, todos os estados cadastrados serão exibidos.
         $estados = Cache::remember('todos_os_estados', 3600, function () {
             return Estado::orderBy('nome')->get();
         });
 
-        // O nome da sua view parece ser 'cidades.blade.php'
         return view('cidades', ['estados' => $estados]);
     }
 
@@ -33,27 +29,24 @@ class VitrineController extends Controller
      */
     public function mostrarPorCidade(Request $request, string $genero, string $cidadeNome)
     {
-        // Cria uma chave de cache única para esta combinação de cidade, gênero, filtros e página
         $servicosSelecionadosIds = implode('-', $request->input('servicos', []));
         $paginaAtual = $request->input('page', 1);
         $cacheKey = "vitrine_{$cidadeNome}_{$genero}_servicos_{$servicosSelecionadosIds}_pagina_{$paginaAtual}";
 
-        // Guarda os dados da vitrine no cache por 1 hora
         $dadosVitrine = Cache::remember($cacheKey, 3600, function () use ($request, $genero, $cidadeNome) {
 
-            // --- INÍCIO DA NOVA LÓGICA DE ORDENAÇÃO COM PRIORIDADE ---
-
-            // Cria uma "semente" única para a semana atual (ex: "2025-32")
             $seed = date('Y-W');
 
             $baseQuery = Acompanhante::query()
-                ->select('acompanhantes.*') // Seleciona explicitamente as colunas de acompanhantes
-                // Junta as tabelas para aceder à prioridade do plano ativo
+                ->select('acompanhantes.*')
                 ->leftJoin('users', 'acompanhantes.user_id', '=', 'users.id')
                 ->leftJoin('assinaturas', function ($join) {
                     $join->on('users.id', '=', 'assinaturas.user_id')
                          ->where('assinaturas.status', '=', 'ativa')
-                         ->where('assinaturas.data_fim', '>', now());
+                         ->where(function ($query) {
+                            $query->where('assinaturas.data_fim', '>', now())
+                                  ->orWhereNull('assinaturas.data_fim');
+                         });
                 })
                 ->leftJoin('planos', 'assinaturas.plano_id', '=', 'planos.id')
                 // Filtros principais
@@ -63,17 +56,35 @@ class VitrineController extends Controller
                 })
                 ->where('acompanhantes.status', 'aprovado');
 
+            // =======================================================
+            // === INÍCIO DA ADIÇÃO DA REGRA DE NEGÓCIO (PERFIL COMPLETO) ===
+            // =======================================================
+
+            // Garante que só aparecem perfis que têm todos os campos obrigatórios preenchidos
+            $baseQuery->whereNotNull('acompanhantes.nome_artistico')
+                      ->whereNotNull('acompanhantes.foto_principal_path')
+                      ->whereNotNull('acompanhantes.cidade_id')
+                      ->whereNotNull('acompanhantes.descricao')
+                      ->whereNotNull('acompanhantes.whatsapp')
+                      ->whereNotNull('acompanhantes.valor_hora');
+
+            // A regra final e mais importante: o perfil DEVE ter pelo menos uma foto na galeria.
+            $baseQuery->whereHas('midias', function ($query) {
+                $query->where('type', 'image');
+            });
+
+            // =======================================================
+            // ==== FIM DA ADIÇÃO DA REGRA DE NEGÓCIO (PERFIL COMPLETO) ====
+            // =======================================================
+
+
             if ($request->filled('servicos')) {
                 $servicosSelecionados = $request->servicos;
-                // O whereHas é aplicado na query principal
                 $baseQuery->whereHas('servicos', function ($q) use ($servicosSelecionados) {
                     $q->whereIn('servicos.id', $servicosSelecionados);
                 });
             }
 
-            // Ordena primeiro pela prioridade do plano (menor número = mais alto)
-            // Perfis sem plano ativo recebem prioridade 999 (vão para o fim)
-            // Depois, aplica o rodízio aleatório semanal
             $destaques = (clone $baseQuery)
                 ->where('acompanhantes.is_featured', true)
                 ->orderByRaw('IFNULL(planos.prioridade, 999) ASC')
@@ -87,12 +98,9 @@ class VitrineController extends Controller
                 ->paginate(12)
                 ->withQueryString();
 
-            // --- FIM DA NOVA LÓGICA ---
-
             return ['destaques' => $destaques, 'acompanhantes' => $acompanhantesNormais];
         });
 
-        // O resto dos dados não precisa de cache pesado
         $servicos = Servico::orderBy('nome')->get();
 
         return view('vitrine', [
@@ -110,7 +118,9 @@ class VitrineController extends Controller
      */
     public function show(Acompanhante $acompanhante)
     {
-        if ($acompanhante->status !== 'aprovado') {
+        // A lógica do método show() não precisa de ser alterada, mas podemos adicionar
+        // uma verificação extra para garantir que o perfil está completo.
+        if ($acompanhante->status !== 'aprovado' || !$acompanhante->isPubliclyReady()) {
             abort(404);
         }
 
