@@ -240,6 +240,15 @@ class ProfileController extends Controller
 
         $request->validate(['fotos' => 'required', 'fotos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120']);
 
+        // =======================================================
+        // =================== INÍCIO DA ALTERAÇÃO ==================
+        // =======================================================
+
+        // 1. Determina qual deve ser o status da nova média
+        // Se o perfil principal já está 'aprovado', a nova foto também já entra como 'aprovado'.
+        // Caso contrário, fica 'pendente' para a moderação inicial.
+        $newMediaStatus = $user->acompanhante?->status === 'aprovado' ? 'aprovado' : 'pendente';
+
         if ($request->hasFile('fotos')) {
             foreach ($request->file('fotos') as $file) {
                 $nomeArquivo = 'galerias/' . $user->id . '/' . Str::random(40) . '.jpg';
@@ -251,12 +260,21 @@ class ProfileController extends Controller
                     'user_id' => $user->id,
                     'type' => 'image',
                     'path' => $nomeArquivo,
-                    'status' => 'pendente'
+                    // 2. Usa o status dinâmico que definimos acima
+                    'status' => $newMediaStatus
                 ]);
             }
-            $user->acompanhante->update(['status' => 'pendente']);
+
+            // 3. A linha que colocava o perfil inteiro como pendente foi REMOVIDA.
+            // $user->acompanhante->update(['status' => 'pendente']);
+
             Cache::flush();
         }
+
+        // =======================================================
+        // ==================== FIM DA ALTERAÇÃO =====================
+        // =======================================================
+
         return back()->with('status', 'gallery-updated')->with('success_message', 'Fotos enviadas com sucesso!');
     }
 
@@ -289,6 +307,13 @@ class ProfileController extends Controller
             'videos.*' => 'mimetypes:video/mp4,video/quicktime,video/mpeg|max:20480'
         ]);
 
+        // =======================================================
+        // =================== INÍCIO DA ALTERAÇÃO ==================
+        // =======================================================
+
+        // 1. Determina qual deve ser o status da nova média, tal como fizemos para as fotos.
+        $newMediaStatus = $user->acompanhante?->status === 'aprovado' ? 'aprovado' : 'pendente';
+
         if ($request->hasFile('videos')) {
             foreach ($request->file('videos') as $file) {
                 $videoPath = $file->store('galerias/' . $user->id . '/videos', 'public');
@@ -310,12 +335,21 @@ class ProfileController extends Controller
                     'type' => 'video',
                     'path' => $videoPath,
                     'thumbnail_path' => $thumbnailRelativePath,
-                    'status' => 'pendente'
+                    // 2. Usa o status dinâmico
+                    'status' => $newMediaStatus
                 ]);
             }
-            $user->acompanhante->update(['status' => 'pendente']);
+
+            // 3. A linha que colocava o perfil inteiro como pendente foi REMOVIDA.
+            // $user->acompanhante->update(['status' => 'pendente']);
+
             Cache::flush();
         }
+
+        // =======================================================
+        // ==================== FIM DA ALTERAÇÃO =====================
+        // =======================================================
+
         return back()->with('status', 'gallery-updated')->with('success_message', 'Vídeos enviados com sucesso!');
     }
 }
