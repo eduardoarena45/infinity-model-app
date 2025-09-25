@@ -103,7 +103,7 @@ class ProfileController extends Controller
         $user = $request->user();
         $acompanhante = $user->acompanhante;
 
-        // --- INÍCIO DA CORREÇÃO DA VALIDAÇÃO ---
+        $wasProfileIncomplete = empty($acompanhante->getOriginal('nome_artistico'));
 
         $descricaoLimit = $user->getDescricaoLimit();
         $descricaoRules = ['required', 'string'];
@@ -112,7 +112,6 @@ class ProfileController extends Controller
         }
 
         $request->validate([
-            // Campos de texto obrigatórios
             'nome_artistico' => ['required', 'string', 'max:255'],
             'data_nascimento' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
             'cidade_id' => ['required', 'exists:cidades,id'],
@@ -120,25 +119,14 @@ class ProfileController extends Controller
             'genero' => ['required', 'string', 'in:mulher,homem,trans'],
             'valor_hora' => ['required', 'numeric', 'min:0'],
             'descricao' => $descricaoRules,
-
-            // Fotos são obrigatórias APENAS se ainda não existirem
-            'foto_principal' => [
-                $acompanhante->foto_principal_path ? 'nullable' : 'required',
-                'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'
-            ],
-            'foto_verificacao' => [
-                $acompanhante->foto_verificacao_path ? 'nullable' : 'required',
-                'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'
-            ],
-
-            // Campos opcionais
+            'foto_principal' => [$acompanhante->foto_principal_path ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'foto_verificacao' => [$acompanhante->foto_verificacao_path ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'valor_15_min' => ['nullable', 'numeric', 'min:0'],
             'valor_30_min' => ['nullable', 'numeric', 'min:0'],
             'valor_pernoite' => ['nullable', 'numeric', 'min:0'],
             'servicos' => ['nullable', 'array'],
             'servicos.*' => ['exists:servicos,id'],
         ], [
-            // Mensagens personalizadas em português
             'required' => 'O campo :attribute é obrigatório.',
             'date' => 'O campo :attribute deve ser uma data válida.',
             'before_or_equal' => 'Você deve ter pelo menos 18 anos.',
@@ -147,44 +135,49 @@ class ProfileController extends Controller
             'max' => 'O ficheiro não pode ser maior que :max kilobytes.',
         ]);
 
-        // --- FIM DA CORREÇÃO DA VALIDAÇÃO ---
+        // 1. Prepara um array com todos os dados de texto que vêm do formulário.
+        $dataToUpdate = $request->only([
+            'nome_artistico', 'data_nascimento', 'cidade_id', 'whatsapp', 'genero',
+            'valor_hora', 'descricao', 'valor_15_min', 'valor_30_min', 'valor_pernoite'
+        ]);
 
+        // 2. Lida com o upload da foto principal
+        if ($request->hasFile('foto_principal')) {
+            if ($acompanhante->foto_principal_path) Storage::disk('public')->delete($acompanhante->foto_principal_path);
+            $imagem = $request->file('foto_principal');
+            $nomeArquivo = 'perfis/' . Str::random(40) . '.jpg';
+            $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
+            Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
+            $dataToUpdate['foto_principal_path'] = $nomeArquivo;
+        }
+
+        // 3. Lida com o upload da foto de verificação
+        if ($request->hasFile('foto_verificacao')) {
+            if ($acompanhante->foto_verificacao_path) Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
+            $path = $request->file('foto_verificacao')->store('documentos_verificacao', 'local');
+            $dataToUpdate['foto_verificacao_path'] = $path;
+        }
+
+        // 4. Lida com a lógica de status
         $jaFoiAprovado = in_array($acompanhante->getOriginal('status'), ['aprovado', 'rejeitado']);
         $requerModeracaoDeImagem = $request->hasFile('foto_principal') || $request->hasFile('foto_verificacao');
 
-        if ($request->hasFile('foto_principal')) {
-            if ($acompanhante->foto_principal_path) {
-                Storage::disk('public')->delete($acompanhante->foto_principal_path);
-            }
-            $imagem = $request->file('foto_principal');
-            $nomeArquivo = 'perfis/' . Str::random(40) . '.jpg';
-
-            $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
-            Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
-
-            $acompanhante->foto_principal_path = $nomeArquivo;
+        if (!($jaFoiAprovado && !$requerModeracaoDeImagem)) {
+            $dataToUpdate['status'] = 'pendente';
         }
 
-        if ($request->hasFile('foto_verificacao')) {
-            if ($acompanhante->foto_verificacao_path) {
-                Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
-            }
-            $path = $request->file('foto_verificacao')->store('documentos_verificacao', 'local');
-            $acompanhante->foto_verificacao_path = $path;
-        }
+        // 5. Executa uma única e robusta operação de atualização na base de dados.
+        $acompanhante->update($dataToUpdate);
 
-        $acompanhante->fill($request->except(['foto_principal', 'foto_verificacao', 'servicos']));
-
-        if ($jaFoiAprovado && !$requerModeracaoDeImagem) {
-            // Mantém o status
-        } else {
-            $acompanhante->status = 'pendente';
-        }
-
-        $acompanhante->save();
+        // 6. Sincroniza os serviços
         $acompanhante->servicos()->sync($request->input('servicos', []));
 
         Cache::flush();
+
+        // 7. Lógica de redirecionamento para o onboarding
+        if ($wasProfileIncomplete && !empty($request->nome_artistico)) {
+            return redirect()->route('galeria.gerir')->with('status', 'profile-updated-first-time');
+        }
 
         return back()->with('status', 'profile-updated');
     }
@@ -240,41 +233,22 @@ class ProfileController extends Controller
 
         $request->validate(['fotos' => 'required', 'fotos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120']);
 
-        // =======================================================
-        // =================== INÍCIO DA ALTERAÇÃO ==================
-        // =======================================================
-
-        // 1. Determina qual deve ser o status da nova média
-        // Se o perfil principal já está 'aprovado', a nova foto também já entra como 'aprovado'.
-        // Caso contrário, fica 'pendente' para a moderação inicial.
         $newMediaStatus = $user->acompanhante?->status === 'aprovado' ? 'aprovado' : 'pendente';
 
         if ($request->hasFile('fotos')) {
             foreach ($request->file('fotos') as $file) {
                 $nomeArquivo = 'galerias/' . $user->id . '/' . Str::random(40) . '.jpg';
-
                 $imagemComMarca = $this->aplicarMarcaDagua($file->getRealPath(), $file->getClientOriginalExtension());
                 Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
-
                 Media::create([
                     'user_id' => $user->id,
                     'type' => 'image',
                     'path' => $nomeArquivo,
-                    // 2. Usa o status dinâmico que definimos acima
                     'status' => $newMediaStatus
                 ]);
             }
-
-            // 3. A linha que colocava o perfil inteiro como pendente foi REMOVIDA.
-            // $user->acompanhante->update(['status' => 'pendente']);
-
             Cache::flush();
         }
-
-        // =======================================================
-        // ==================== FIM DA ALTERAÇÃO =====================
-        // =======================================================
-
         return back()->with('status', 'gallery-updated')->with('success_message', 'Fotos enviadas com sucesso!');
     }
 
@@ -307,11 +281,6 @@ class ProfileController extends Controller
             'videos.*' => 'mimetypes:video/mp4,video/quicktime,video/mpeg|max:20480'
         ]);
 
-        // =======================================================
-        // =================== INÍCIO DA ALTERAÇÃO ==================
-        // =======================================================
-
-        // 1. Determina qual deve ser o status da nova média, tal como fizemos para as fotos.
         $newMediaStatus = $user->acompanhante?->status === 'aprovado' ? 'aprovado' : 'pendente';
 
         if ($request->hasFile('videos')) {
@@ -335,21 +304,12 @@ class ProfileController extends Controller
                     'type' => 'video',
                     'path' => $videoPath,
                     'thumbnail_path' => $thumbnailRelativePath,
-                    // 2. Usa o status dinâmico
                     'status' => $newMediaStatus
                 ]);
             }
-
-            // 3. A linha que colocava o perfil inteiro como pendente foi REMOVIDA.
-            // $user->acompanhante->update(['status' => 'pendente']);
-
             Cache::flush();
         }
-
-        // =======================================================
-        // ==================== FIM DA ALTERAÇÃO =====================
-        // =======================================================
-
         return back()->with('status', 'gallery-updated')->with('success_message', 'Vídeos enviados com sucesso!');
     }
 }
+

@@ -24,29 +24,22 @@ Route::get('/vitrine/{genero}/{cidade}', [VitrineController::class, 'mostrarPorC
 Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('vitrine.show');
 Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
 Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstado'])->name('api.cidades');
-
-// =======================================================
-// =================== INÍCIO DA ADIÇÃO ==================
-// =======================================================
-// Nova rota de API para carregar as fotos da galeria de um perfil específico para o carrossel.
 Route::get('/api/acompanhante/{acompanhante}/galeria', [VitrineController::class, 'getGaleriaFotos'])->name('api.acompanhante.galeria');
-// =======================================================
-// ==================== FIM DA ADIÇÃO ====================
-// =======================================================
 
 
 // --- ROTAS PRIVADAS (PARA UTILIZADORAS LOGADAS) ---
 Route::middleware(['auth', 'nocache'])->group(function () {
 
-    // --- GRUPO 1: ROTAS DO FUNIL DE ONBOARDING ---
-    Route::get('/escolher-plano', [PlanoController::class, 'selecionar'])->name('planos.selecionar');
-    Route::post('/assinar-plano/{plano}', [PlanoController::class, 'assinar'])->name('planos.assinar');
-    Route::get('/planos/pagamento/{assinatura}', [PlanoController::class, 'mostrarPagamento'])->name('planos.pagamento');
+    // =======================================================
+    // ================ INÍCIO DA REORGANIZAÇÃO ================
+    // =======================================================
 
-    // --- GRUPO 2: ROTAS DO PAINEL PRINCIPAL ---
+    // --- GRUPO 1: ROTAS DO PAINEL PRINCIPAL (PROTEGIDAS PELO ONBOARDING CHECK) ---
+    // Todas as rotas do painel agora ficam DENTRO deste grupo.
     Route::middleware('onboarding.check')->group(function () {
 
         Route::get('/dashboard', function () {
+            // ... (código da rota dashboard continua igual)
             $user = Auth::user();
             $acompanhante = $user->acompanhante()->with('cidade', 'avaliacoes')->firstOrCreate([]);
             $viewsToday = $acompanhante->profileViews()->whereDate('created_at', Carbon::today())->count();
@@ -74,20 +67,40 @@ Route::middleware(['auth', 'nocache'])->group(function () {
             ]);
         })->name('dashboard');
 
-        Route::get('/meu-perfil', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::patch('/meu-perfil', [ProfileController::class, 'update'])->name('profile.update');
-        Route::post('/meu-perfil/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+        // A rota "Meu Plano" foi movida para DENTRO do grupo protegido.
+        Route::get('/meu-plano', [PlanoController::class, 'selecionar'])->name('planos.selecionar');
+
+        // Rotas de gestão da galeria
         Route::get('/minha-galeria', [ProfileController::class, 'gerirGaleria'])->name('galeria.gerir');
         Route::post('/galeria', [ProfileController::class, 'uploadGaleria'])->name('galeria.upload');
         Route::post('/galeria/videos', [ProfileController::class, 'uploadVideo'])->name('galeria.upload.video');
         Route::delete('/galeria/{media}', [ProfileController::class, 'destroyMidia'])->name('galeria.destroy');
+
+        // Outras rotas do painel
         Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
         Route::get('/disponibilidade', [DisponibilidadeController::class, 'edit'])->name('disponibilidade.edit');
         Route::post('/disponibilidade', [DisponibilidadeController::class, 'update'])->name('disponibilidade.update');
     });
+
+    // --- GRUPO 2: ROTAS DO FUNIL DE ONBOARDING (NÃO PROTEGIDAS PELO CHECK) ---
+    // Estas rotas são as únicas que o "porteiro" deixa passar no início.
+
+    // A rota para escolher o plano foi movida para o grupo protegido,
+    // mas as rotas para assinar e pagar ficam aqui.
+    Route::post('/assinar-plano/{plano}', [PlanoController::class, 'assinar'])->name('planos.assinar');
+    Route::get('/planos/pagamento/{assinatura}', [PlanoController::class, 'mostrarPagamento'])->name('planos.pagamento');
+
+    // As rotas de edição de perfil também ficam fora do grupo principal
+    // para que o middleware as permita aceder durante o onboarding.
+    Route::get('/meu-perfil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/meu-perfil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/meu-perfil/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+
+    // =======================================================
+    // ================== FIM DA REORGANIZAÇÃO =================
+    // =======================================================
 });
 
 
 // Inclui as rotas de autenticação
 require __DIR__.'/auth.php';
-

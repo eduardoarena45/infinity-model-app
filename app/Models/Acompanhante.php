@@ -21,6 +21,11 @@ class Acompanhante extends Model
         'nome_artistico',
         'genero',
         'foto_principal_path',
+        // =======================================================
+        // =================== INÍCIO DA CORREÇÃO ==================
+        // Adicionamos a permissão que faltava aqui.
+        'foto_verificacao_path',
+        // ==================== FIM DA CORREÇÃO =====================
         'data_nascimento',
         'cidade_id',
         'descricao',
@@ -91,10 +96,6 @@ class Acompanhante extends Model
         return $this->hasMany(ProfileView::class);
     }
 
-    // =======================================================
-    // =================== INÍCIO DA ADIÇÃO ==================
-    // =======================================================
-
     /**
      * Verifica se o perfil tem todos os dados mínimos para ser listado publicamente.
      * Isto inclui ter pelo menos uma foto na galeria.
@@ -120,9 +121,5 @@ class Acompanhante extends Model
 
         return $hasGalleryPhoto;
     }
-
-    // =======================================================
-    // ==================== FIM DA ADIÇÃO ====================
-    // =======================================================
 }
 
