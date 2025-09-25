@@ -4,20 +4,20 @@
 @section('content')
     <div class="container mx-auto px-2 sm:px-4 py-12">
         <h1 class="text-3xl font-bold text-center text-gray-900 dark:text-white my-2">Perfis em <span class="text-blue-500">{{ $cidadeNome }}</span></h1>
-        
+
         {{-- NAVEGAÇÃO DE CATEGORIAS --}}
         <div class="flex justify-center space-x-4 sm:space-x-8 my-8 text-lg">
             <a href="{{ route('vitrine.por.cidade', ['genero' => 'mulher', 'cidade' => $cidadeNome]) }}"
                class="{{ $genero == 'mulher' ? 'text-blue-500 font-bold border-b-2 border-blue-500 pb-1' : 'text-gray-500 dark:text-gray-400' }}">
-               Mulheres
+                Mulheres
             </a>
             <a href="{{ route('vitrine.por.cidade', ['genero' => 'homem', 'cidade' => $cidadeNome]) }}"
                class="{{ $genero == 'homem' ? 'text-blue-500 font-bold border-b-2 border-blue-500 pb-1' : 'text-gray-500 dark:text-gray-400' }}">
-               Homens
+                Homens
             </a>
             <a href="{{ route('vitrine.por.cidade', ['genero' => 'trans', 'cidade' => $cidadeNome]) }}"
                class="{{ $genero == 'trans' ? 'text-blue-500 font-bold border-b-2 border-blue-500 pb-1' : 'text-gray-500 dark:text-gray-400' }}">
-               Trans
+                Trans
             </a>
         </div>
 
@@ -56,7 +56,8 @@
         @if($destaques->isNotEmpty())
             <div class="mb-16">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">✨ Destaques</h2>
-                <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
+                <!-- ALTERAÇÃO AQUI: de grid-cols-3 para grid-cols-2 -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
                     @foreach ($destaques as $perfil)
                         @include('partials.acompanhante-card', ['perfil' => $perfil, 'isDestaque' => true])
                     @endforeach
@@ -66,18 +67,19 @@
 
         {{-- SEÇÃO DE OUTROS PERFIS --}}
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Outros Perfis</h2>
-        <div class="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
+        <!-- ALTERAÇÃO AQUI: de grid-cols-3 para grid-cols-2 -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4">
             @forelse ($acompanhantes as $perfil)
                 @include('partials.acompanhante-card', ['perfil' => $perfil, 'isDestaque' => false])
             @empty
                 <p class="col-span-full text-center text-gray-500 text-xl py-12">Nenhum perfil encontrado para os critérios selecionados.</p>
             @endforelse
         </div>
-        
+
         <div class="mt-12">{{ $acompanhantes->links() }}</div>
     </div>
 @endsection
 
 @push('scripts')
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 @endpush
