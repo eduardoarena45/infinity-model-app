@@ -27,6 +27,19 @@
     <body class="font-sans antialiased">
         <div x-data="{ mobileMenuOpen: false }" class="min-h-screen bg-gray-100 dark:bg-gray-900">
 
+            {{-- ======================================================= --}}
+            {{-- =================== INÍCIO DA CORREÇÃO ================== --}}
+            {{-- ======================================================= --}}
+            @php
+                $acompanhante = Auth::user()->loadMissing('acompanhante')->acompanhante;
+                // Adicionámos a linha que faltava para carregar as notificações
+                $unreadNotifications = Auth::user()->unreadNotifications;
+            @endphp
+            {{-- ======================================================= --}}
+            {{-- ==================== FIM DA CORREÇÃO ===================== --}}
+            {{-- ======================================================= --}}
+
+
             <!-- CABEÇALHO PRINCIPAL (HEADER) -->
             <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,9 +48,15 @@
                         <!-- Lado Esquerdo: Logo e Navegação Desktop -->
                         <div class="flex items-center space-x-8">
                             <!-- Logo -->
-                            <a href="{{ route('dashboard') }}" class="text-2xl font-bold text-gray-800 dark:text-white">
-                                Infinity Model
-                            </a>
+                            @if ($acompanhante && $acompanhante->status === 'aprovado' && $acompanhante->isPubliclyReady())
+                                <a href="{{ route('vitrine.show', $acompanhante) }}" target="_blank" title="Ver o meu perfil público" class="text-2xl font-bold text-gray-800 dark:text-white">
+                                    Infinity Model
+                                </a>
+                            @else
+                                <a href="{{ route('dashboard') }}" class="text-2xl font-bold text-gray-800 dark:text-white">
+                                    Infinity Model
+                                </a>
+                            @endif
 
                             <!-- Navegação Principal (só aparece em ecrãs médios para cima) -->
                             <nav class="hidden md:flex space-x-4">
@@ -61,9 +80,7 @@
 
                         <!-- Lado Direito: Notificações, Avatar e Botão Mobile -->
                         <div class="flex items-center space-x-4">
-                            <!-- ======================================================= -->
-                            <!-- === CÓDIGO RESTAURADO: O bloco de notificações está de volta === -->
-                            <!-- ======================================================= -->
+                            <!-- Bloco de Notificações -->
                             <div x-data="{ open: false, unreadCount: {{ $unreadNotifications->count() }} }" class="relative">
                                 <button @click="open = !open; if(open && unreadCount > 0) { markNotificationsAsRead(); unreadCount = 0; }" class="relative p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none">
                                     <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -87,9 +104,7 @@
                                 </div>
                             </div>
 
-                             <!-- ======================================================= -->
-                            <!-- === CORREÇÃO: O formulário do avatar agora está separado do dropdown === -->
-                            <!-- ======================================================= -->
+                            <!-- Formulário do Avatar -->
                             <form id="avatar-form" action="{{ route('profile.avatar.update') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <label for="avatar-upload-input" class="cursor-pointer">
@@ -103,7 +118,7 @@
                                 <x-dropdown align="right" width="48">
                                     <x-slot name="trigger">
                                         <button class="inline-flex items-center text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition">
-                                            <span class="hidden sm:inline">{{ Auth::user()->name }}</span>
+                                            <span class="hidden sm:inline">{{ $acompanhante->nome_artistico ?? Auth::user()->name }}</span>
                                             <svg class="h-4 w-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                                         </button>
                                     </x-slot>
