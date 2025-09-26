@@ -53,6 +53,28 @@
                         <span>Enviar Comprovativo via WhatsApp</span>
                     </a>
                 </div>
+
+                {{-- ======================================================= --}}
+                {{-- =================== INÍCIO DA ALTERAÇÃO ================== --}}
+                {{-- ======================================================= --}}
+
+                {{-- Container para o botão de navegação simplificado --}}
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+
+                    {{-- Botão único para voltar à seleção de planos --}}
+                    <a href="{{ route('planos.selecionar') }}" class="w-full flex items-center justify-center bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors shadow-md">
+                        <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                        </svg>
+                        <span>Voltar pra seleção de planos</span>
+                    </a>
+
+                </div>
+
+                {{-- ======================================================= --}}
+                {{-- ==================== FIM DA ALTERAÇÃO ===================== --}}
+                {{-- ======================================================= --}}
+
             </div>
         </div>
     </div>
@@ -62,3 +84,4 @@
 {{-- Incluímos o AlpineJS aqui caso ainda não esteja no layout --}}
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 @endpush
+
