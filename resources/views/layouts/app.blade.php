@@ -27,18 +27,10 @@
     <body class="font-sans antialiased">
         <div x-data="{ mobileMenuOpen: false }" class="min-h-screen bg-gray-100 dark:bg-gray-900">
 
-            {{-- ======================================================= --}}
-            {{-- =================== INÍCIO DA CORREÇÃO ================== --}}
-            {{-- ======================================================= --}}
             @php
                 $acompanhante = Auth::user()->loadMissing('acompanhante')->acompanhante;
-                // Adicionámos a linha que faltava para carregar as notificações
                 $unreadNotifications = Auth::user()->unreadNotifications;
             @endphp
-            {{-- ======================================================= --}}
-            {{-- ==================== FIM DA CORREÇÃO ===================== --}}
-            {{-- ======================================================= --}}
-
 
             <!-- CABEÇALHO PRINCIPAL (HEADER) -->
             <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40">
@@ -96,7 +88,10 @@
                                     </div>
                                     <div class="divide-y divide-gray-100 dark:divide-gray-700 max-h-96 overflow-y-auto">
                                         @forelse($unreadNotifications as $notification)
-                                            {{-- O seu código de notificação individual fica aqui --}}
+                                            <div class="p-4 text-sm text-gray-700 dark:text-gray-300">
+                                                {{ $notification->data['message'] ?? 'Você tem uma nova notificação.' }}
+                                                <div class="text-xs text-gray-400 mt-1">{{ $notification->created_at->diffForHumans() }}</div>
+                                            </div>
                                         @empty
                                             <div class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">Nenhuma notificação nova.</div>
                                         @endforelse
@@ -174,9 +169,37 @@
             </main>
         </div>
 
+        {{-- ======================================================= --}}
+        {{-- =================== INÍCIO DA CORREÇÃO ================== --}}
+        {{-- A função agora está completa e funcional --}}
+        {{-- ======================================================= --}}
         <script>
-            function markNotificationsAsRead() { /* ... */ }
+            function markNotificationsAsRead() {
+                // Usamos a API Fetch para enviar uma requisição POST para a nossa rota no back-end.
+                fetch('{{ route("notifications.markAsRead") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // O token CSRF é essencial para a segurança do Laravel.
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Notificações marcadas como lidas!');
+                    } else {
+                        console.error('Falha ao marcar as notificações como lidas.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro na requisição:', error);
+                });
+            }
         </script>
+        {{-- ======================================================= --}}
+        {{-- ==================== FIM DA CORREÇÃO ===================== --}}
+        {{-- ======================================================= --}}
     </body>
 </html>
 
