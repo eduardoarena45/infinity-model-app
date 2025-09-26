@@ -2,15 +2,27 @@
 
 @section('title', 'Escolha o seu Plano')
 
-{{-- ======================================================= --}}
-{{-- ============= INÍCIO DA CORREÇÃO LÓGICA ============== --}}
-{{-- ======================================================= --}}
-
 @section('content')
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="text-center mb-12">
             <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Escolha o seu Plano</h1>
             <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">Selecione o plano que melhor se adapta às suas necessidades para começar.</p>
+
+            {{-- ======================================================= --}}
+            {{-- =================== INÍCIO DA ALTERAÇÃO ================== --}}
+            {{-- ======================================================= --}}
+
+            {{-- Botão "Voltar" com estilo melhorado, restaurado da versão anterior --}}
+            <div class="mt-6">
+                <a href="{{ route('dashboard') }}" class="inline-block bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-semibold px-5 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors shadow-sm">
+                    &larr; Voltar para o Painel
+                </a>
+            </div>
+
+            {{-- ======================================================= --}}
+            {{-- ==================== FIM DA ALTERAÇÃO ===================== --}}
+            {{-- ======================================================= --}}
+
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -92,8 +104,4 @@
         </div>
     </div>
 @endsection
-
-{{-- ======================================================= --}}
-{{-- =============== FIM DA CORREÇÃO LÓGICA ================ --}}
-{{-- ======================================================= --}}
 

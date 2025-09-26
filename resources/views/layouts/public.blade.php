@@ -64,15 +64,31 @@
                     </div>
                     <div class="flex items-center space-x-4">
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[--color-accent] transition-colors">Meu Painel</a>
+                            {{-- ======================================================= --}}
+                            {{-- =================== INÍCIO DA ALTERAÇÃO ================== --}}
+                            {{-- ======================================================= --}}
+
+                            {{-- Carregamos os dados do perfil para usar o nome artístico --}}
+                            @php
+                                $acompanhante = Auth::user()->loadMissing('acompanhante')->acompanhante;
+                            @endphp
+
+                            {{-- Saudação personalizada com link para o painel --}}
+                            <a href="{{ url('/dashboard') }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[--color-accent] transition-colors">
+                                Olá, {{ $acompanhante->nome_artistico ?? Auth::user()->name }}
+                            </a>
+
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[--color-accent] transition-colors">Sair</a>
                             </form>
+
+                            {{-- ======================================================= --}}
+                            {{-- ==================== FIM DA ALTERAÇÃO ===================== --}}
+                            {{-- ======================================================= --}}
                         @else
                             <a href="{{ route('login') }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[--color-accent] transition-colors">Login</a>
                             @if (Route::has('register'))
-                                {{-- BOTÃO CORRIGIDO PARA AZUL --}}
                                 <a href="{{ route('register') }}" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-opacity">
                                     Cadastrar
                                 </a>
@@ -133,3 +149,4 @@
         @stack('scripts')
     </body>
 </html>
+
