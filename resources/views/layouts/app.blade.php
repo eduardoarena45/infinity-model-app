@@ -28,7 +28,8 @@
         <div x-data="{ mobileMenuOpen: false }" class="min-h-screen bg-gray-100 dark:bg-gray-900">
 
             @php
-                $acompanhante = Auth::user()->loadMissing('acompanhante')->acompanhante;
+                // Otimizamos para carregar a acompanhante e a sua cidade de uma só vez.
+                $acompanhante = Auth::user()->loadMissing('acompanhante.cidade')->acompanhante;
                 $unreadNotifications = Auth::user()->unreadNotifications;
             @endphp
 
@@ -40,15 +41,26 @@
                         <!-- Lado Esquerdo: Logo e Navegação Desktop -->
                         <div class="flex items-center space-x-8">
                             <!-- Logo -->
-                            @if ($acompanhante && $acompanhante->status === 'aprovado' && $acompanhante->isPubliclyReady())
-                                <a href="{{ route('vitrine.show', $acompanhante) }}" target="_blank" title="Ver o meu perfil público" class="text-2xl font-bold text-gray-800 dark:text-white">
+                            {{-- ======================================================= --}}
+                            {{-- =================== INÍCIO DA ALTERAÇÃO ================== --}}
+                            {{-- ======================================================= --}}
+
+                            {{-- Condição mais robusta, que verifica também se a cidade existe --}}
+                            @if ($acompanhante && $acompanhante->cidade && $acompanhante->status === 'aprovado' && $acompanhante->isPubliclyReady())
+                                {{-- O link agora leva para a VITRINE DA CIDADE e abre na MESMA ABA --}}
+                                <a href="{{ route('vitrine.por.cidade', ['genero' => $acompanhante->genero, 'cidade' => $acompanhante->cidade->nome]) }}" title="Ver a vitrine da minha cidade" class="text-2xl font-bold text-gray-800 dark:text-white">
                                     Infinity Model
                                 </a>
                             @else
+                                {{-- O comportamento padrão continua a ser levar para o dashboard --}}
                                 <a href="{{ route('dashboard') }}" class="text-2xl font-bold text-gray-800 dark:text-white">
                                     Infinity Model
                                 </a>
                             @endif
+
+                            {{-- ======================================================= --}}
+                            {{-- ==================== FIM DA ALTERAÇÃO ===================== --}}
+                            {{-- ======================================================= --}}
 
                             <!-- Navegação Principal (só aparece em ecrãs médios para cima) -->
                             <nav class="hidden md:flex space-x-4">
@@ -169,18 +181,12 @@
             </main>
         </div>
 
-        {{-- ======================================================= --}}
-        {{-- =================== INÍCIO DA CORREÇÃO ================== --}}
-        {{-- A função agora está completa e funcional --}}
-        {{-- ======================================================= --}}
         <script>
             function markNotificationsAsRead() {
-                // Usamos a API Fetch para enviar uma requisição POST para a nossa rota no back-end.
                 fetch('{{ route("notifications.markAsRead") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        // O token CSRF é essencial para a segurança do Laravel.
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     }
                 })
@@ -197,9 +203,6 @@
                 });
             }
         </script>
-        {{-- ======================================================= --}}
-        {{-- ==================== FIM DA CORREÇÃO ===================== --}}
-        {{-- ======================================================= --}}
     </body>
 </html>
 
