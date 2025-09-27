@@ -25,9 +25,13 @@ class PlanoController extends Controller
                 [
                     'plano_id' => $plano->id,
                     'data_inicio' => now(),
-                    // CORREÇÃO CRÍTICA: Definimos a data_fim como null para planos vitalícios
-                    'data_fim' => null,
-                    'status' => 'ativa'
+                    'data_fim' => null, // Planos grátis são vitalícios
+                    'status' => 'ativa',
+                    // =======================================================
+                    // =================== INÍCIO DA ALTERAÇÃO ==================
+                    // Para planos grátis, definimos o valor pago como 0.
+                    'valor_pago' => 0.00
+                    // ==================== FIM DA ALTERAÇÃO =====================
                 ]
             );
             return redirect()->route('profile.edit')->with('status', 'plano-ativado');
@@ -37,8 +41,14 @@ class PlanoController extends Controller
                 ['user_id' => $user->id],
                 [
                     'plano_id' => $plano->id,
+                    // =======================================================
+                    // =================== INÍCIO DA ALTERAÇÃO ==================
+                    // Esta é a alteração mais importante: "congelamos" o preço do plano
+                    // na nossa nova coluna no momento exato da transação.
+                    'valor_pago' => $plano->preco,
+                    // ==================== FIM DA ALTERAÇÃO =====================
                     'data_inicio' => now(),
-                    // Para planos pagos, você definirá a data_fim manualmente no painel admin
+                    // Para planos pagos, a data_fim será ajustada pelo admin após o pagamento.
                     'data_fim' => now()->addDays(30),
                     'status' => 'aguardando_pagamento'
                 ]
@@ -54,4 +64,3 @@ class PlanoController extends Controller
         return view('planos.pagamento', ['assinatura' => $assinatura]);
     }
 }
-
