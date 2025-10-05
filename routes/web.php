@@ -9,6 +9,7 @@ use App\Http\Controllers\DisponibilidadeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Http\Controllers\SitemapController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +26,8 @@ Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('
 Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
 Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstado'])->name('api.cidades');
 Route::get('/api/acompanhante/{acompanhante}/galeria', [VitrineController::class, 'getGaleriaFotos'])->name('api.acompanhante.galeria');
-
+// Rota que serve o sitemap.xml dinâmico
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 
 // --- ROTAS PRIVADAS (PARA UTILIZADORAS LOGADAS) ---
 Route::middleware(['auth', 'nocache'])->group(function () {
