@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Estado;
 use App\Models\Media;
 use App\Models\Servico;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
 
@@ -119,8 +122,8 @@ class ProfileController extends Controller
             'genero' => ['required', 'string', 'in:mulher,homem,trans'],
             'valor_hora' => ['required', 'numeric', 'min:0'],
             'descricao' => $descricaoRules,
-            'foto_principal' => [$acompanhante->foto_principal_path ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'foto_verificacao' => [$acompanhante->foto_verificacao_path ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'foto_principal' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'foto_verificacao' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'valor_15_min' => ['nullable', 'numeric', 'min:0'],
             'valor_30_min' => ['nullable', 'numeric', 'min:0'],
             'valor_pernoite' => ['nullable', 'numeric', 'min:0'],
@@ -143,18 +146,13 @@ class ProfileController extends Controller
 
         // 2. Lida com o upload da foto principal
         if ($request->hasFile('foto_principal')) {
-            if ($acompanhante->foto_principal_path) Storage::disk('public')->delete($acompanhante->foto_principal_path);
-            $imagem = $request->file('foto_principal');
-            $nomeArquivo = 'perfis/' . Str::random(40) . '.jpg';
-            $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
-            Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
+            $nomeArquivo = $this->storeFotoPrincipal($request->file('foto_principal'), $acompanhante);
             $dataToUpdate['foto_principal_path'] = $nomeArquivo;
         }
 
         // 3. Lida com o upload da foto de verificação
         if ($request->hasFile('foto_verificacao')) {
-            if ($acompanhante->foto_verificacao_path) Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
-            $path = $request->file('foto_verificacao')->store('documentos_verificacao', 'local');
+            $path = $this->storeFotoVerificacao($request->file('foto_verificacao'), $acompanhante);
             $dataToUpdate['foto_verificacao_path'] = $path;
         }
 
@@ -199,6 +197,109 @@ class ProfileController extends Controller
 
         $user->update(['private_avatar_path' => $nomeArquivo]);
         return back()->with('status', 'avatar-updated');
+    }
+
+    private function storeFotoPrincipal(UploadedFile $imagem, $acompanhante): string
+    {
+        if ($acompanhante->foto_principal_path && Storage::disk('public')->exists($acompanhante->foto_principal_path)) {
+            Storage::disk('public')->delete($acompanhante->foto_principal_path);
+        }
+
+        $nomeArquivo = 'perfis/' . Str::random(40) . '.jpg';
+        $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
+        Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
+
+        return $nomeArquivo;
+    }
+
+    private function storeFotoVerificacao(UploadedFile $imagem, $acompanhante): string
+    {
+        if ($acompanhante->foto_verificacao_path) {
+            if (Storage::disk('public')->exists($acompanhante->foto_verificacao_path)) {
+                Storage::disk('public')->delete($acompanhante->foto_verificacao_path);
+            }
+
+            if (Storage::disk('local')->exists($acompanhante->foto_verificacao_path)) {
+                Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
+            }
+        }
+
+        return $imagem->store('documentos_verificacao', 'public');
+    }
+
+    private const FOTO_VALIDATION_RULES = ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'];
+
+    public function uploadFotoPrincipal(Request $request): JsonResponse
+    {
+        return $this->handleFotoUpload(
+            $request,
+            'foto_principal',
+            fn (UploadedFile $arquivo, $acompanhante) => $this->storeFotoPrincipal($arquivo, $acompanhante),
+            'Foto principal enviada com sucesso!',
+            'Não foi possível enviar a foto.'
+        );
+    }
+
+    public function uploadFotoVerificacao(Request $request): JsonResponse
+    {
+        return $this->handleFotoUpload(
+            $request,
+            'foto_verificacao',
+            fn (UploadedFile $arquivo, $acompanhante) => $this->storeFotoVerificacao($arquivo, $acompanhante),
+            'Foto de verificação enviada com sucesso!',
+            'Não foi possível enviar a foto de verificação.'
+        );
+    }
+
+    private function handleFotoUpload(
+        Request $request,
+        string $field,
+        callable $storeCallback,
+        string $successMessage,
+        string $failureMessage
+    ): JsonResponse {
+        $acompanhante = $request->user()->acompanhante()->firstOrCreate([]);
+
+        $validator = Validator::make(
+            $request->all(),
+            [
+                $field => array_merge(['required'], self::FOTO_VALIDATION_RULES),
+            ],
+            $this->fotoValidationMessages($field)
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => $failureMessage,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        /** @var UploadedFile $arquivo */
+        $arquivo = $request->file($field);
+        $path = $storeCallback($arquivo, $acompanhante);
+
+        $acompanhante->forceFill([
+            $field . '_path' => $path,
+            'status' => 'pendente',
+        ])->save();
+
+        Cache::flush();
+
+        return response()->json([
+            'message' => $successMessage,
+            'url' => Storage::url($path),
+        ]);
+    }
+
+    private function fotoValidationMessages(string $field): array
+    {
+        return [
+            $field . '.required' => 'Selecione uma imagem para enviar.',
+            $field . '.image' => 'O arquivo precisa ser uma imagem válida.',
+            $field . '.mimes' => 'Formatos permitidos: jpg, jpeg, png ou webp.',
+            $field . '.max' => 'A imagem pode ter no máximo 10MB.',
+        ];
     }
 
     public function gerirGaleria(): View

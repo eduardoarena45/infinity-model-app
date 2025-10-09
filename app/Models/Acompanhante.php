@@ -59,6 +59,19 @@ class Acompanhante extends Model
         return 'https://placehold.co/400x600/663399/FFFFFF?text=Sem+Foto';
     }
 
+    public function getFotoVerificacaoUrlAttribute(): ?string
+    {
+        if (!$this->foto_verificacao_path) {
+            return null;
+        }
+
+        if (Storage::disk('public')->exists($this->foto_verificacao_path)) {
+            return Storage::url($this->foto_verificacao_path);
+        }
+
+        return null;
+    }
+
     public function getIdadeAttribute(): ?int
     {
         return $this->data_nascimento ? Carbon::parse($this->data_nascimento)->age : null;

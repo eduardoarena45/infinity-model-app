@@ -15,7 +15,17 @@
         {{-- Foto Principal --}}
         <div>
             <x-input-label for="foto_principal" value="Foto Principal (Pública)" />
-            <input id="foto_principal" name="foto_principal" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+            <div class="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <input id="foto_principal" name="foto_principal" type="file" accept="image/jpeg,image/png,image/webp"
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                <button type="button" id="upload-foto-principal-btn"
+                        class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition ease-in-out duration-150">
+                    Enviar
+                </button>
+            </div>
+            <p id="foto_principal_message" class="mt-2 text-sm"></p>
+            <img id="foto_principal_preview" src="{{ $acompanhante->foto_principal_path ? $acompanhante->foto_principal_url : '' }}"
+                 alt="Pré-visualização da foto principal" class="mt-4 w-40 h-40 object-cover rounded-lg shadow {{ $acompanhante->foto_principal_path ? '' : 'hidden' }}">
             <x-input-error class="mt-2" :messages="$errors->get('foto_principal')" />
         </div>
 
@@ -29,10 +39,21 @@
             </p>
             <div class="mt-4">
                 <x-input-label for="foto_verificacao" value="Foto de Verificação com Documento" />
-                <input id="foto_verificacao" name="foto_verificacao" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                @if($acompanhante->foto_verificacao_path)
-                    <p class="mt-2 text-sm text-green-600">✓ Um documento já foi enviado. Enviar um novo irá substituir o anterior.</p>
-                @endif
+                <div class="mt-1 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <input id="foto_verificacao" name="foto_verificacao" type="file" accept="image/jpeg,image/png,image/webp"
+                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    <button type="button" id="upload-foto-verificacao-btn"
+                            class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition ease-in-out duration-150">
+                        Enviar
+                    </button>
+                </div>
+                <p id="foto_verificacao_message" class="mt-2 text-sm {{ $acompanhante->foto_verificacao_path ? 'text-green-600' : '' }}">
+                    @if($acompanhante->foto_verificacao_path)
+                        ✓ Um documento já foi enviado. Enviar um novo irá substituir o anterior.
+                    @endif
+                </p>
+                <img id="foto_verificacao_preview" src="{{ $acompanhante->foto_verificacao_url ?? '' }}"
+                     alt="Pré-visualização da foto de verificação" class="mt-4 w-40 h-40 object-cover rounded-lg shadow {{ $acompanhante->foto_verificacao_url ? '' : 'hidden' }}">
                 <x-input-error class="mt-2" :messages="$errors->get('foto_verificacao')" />
             </div>
         </div>
@@ -189,35 +210,135 @@
         const estadoSelect = document.getElementById('estado_id');
         const cidadeSelect = document.getElementById('cidade_id');
 
-        estadoSelect.addEventListener('change', function () {
-            const estadoId = this.value;
-            cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
-            cidadeSelect.disabled = true;
+        if (estadoSelect && cidadeSelect) {
+            estadoSelect.addEventListener('change', function () {
+                const estadoId = this.value;
+                cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+                cidadeSelect.disabled = true;
 
-            if (!estadoId) {
-                cidadeSelect.innerHTML = '<option value="">Selecione um estado primeiro</option>';
+                if (!estadoId) {
+                    cidadeSelect.innerHTML = '<option value="">Selecione um estado primeiro</option>';
+                    return;
+                }
+
+                fetch(`/api/cidades/${estadoId}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Erro na resposta da rede');
+                        return response.json();
+                    })
+                    .then(data => {
+                        cidadeSelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
+                        data.forEach(cidade => {
+                            const option = document.createElement('option');
+                            option.value = cidade.id;
+                            option.textContent = cidade.nome;
+                            cidadeSelect.appendChild(option);
+                        });
+                        cidadeSelect.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Erro ao buscar cidades:', error);
+                        cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+                    });
+            });
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        const setMessage = (element, text, isError = false) => {
+            if (!element) {
                 return;
             }
 
-            fetch(`/api/cidades/${estadoId}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Erro na resposta da rede');
-                    return response.json();
-                })
-                .then(data => {
-                    cidadeSelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
-                    data.forEach(cidade => {
-                        const option = document.createElement('option');
-                        option.value = cidade.id;
-                        option.textContent = cidade.nome;
-                        cidadeSelect.appendChild(option);
+            const baseClass = 'mt-2 text-sm';
+            element.textContent = text || '';
+            if (!text) {
+                element.className = baseClass;
+                return;
+            }
+
+            element.className = `${baseClass} ${isError ? 'text-red-600' : 'text-green-600'}`;
+        };
+
+        const uploaders = [
+            {
+                inputId: 'foto_principal',
+                buttonId: 'upload-foto-principal-btn',
+                messageId: 'foto_principal_message',
+                previewId: 'foto_principal_preview',
+                url: '{{ route('profile.upload-foto-principal') }}',
+                fieldName: 'foto_principal',
+            },
+            {
+                inputId: 'foto_verificacao',
+                buttonId: 'upload-foto-verificacao-btn',
+                messageId: 'foto_verificacao_message',
+                previewId: 'foto_verificacao_preview',
+                url: '{{ route('profile.upload-foto-verificacao') }}',
+                fieldName: 'foto_verificacao',
+            },
+        ];
+
+        uploaders.forEach(({ inputId, buttonId, messageId, previewId, url, fieldName }) => {
+            const fileInput = document.getElementById(inputId);
+            const button = document.getElementById(buttonId);
+            const messageElement = document.getElementById(messageId);
+            const previewElement = document.getElementById(previewId);
+
+            if (!fileInput || !button) {
+                return;
+            }
+
+            button.addEventListener('click', async () => {
+                if (!fileInput.files.length) {
+                    setMessage(messageElement, 'Selecione uma imagem para enviar.', true);
+                    return;
+                }
+
+                const originalButtonText = button.textContent;
+                button.disabled = true;
+                button.textContent = 'Enviando...';
+                setMessage(messageElement, '');
+
+                const formData = new FormData();
+                formData.append(fieldName, fileInput.files[0]);
+
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: formData,
                     });
-                    cidadeSelect.disabled = false;
-                })
-                .catch(error => {
-                    console.error('Erro ao buscar cidades:', error);
-                    cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>';
-                });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        const errorMessage = data?.errors
+                            ? Object.values(data.errors)[0][0]
+                            : (data?.message || 'Erro ao enviar imagem.');
+                        setMessage(messageElement, errorMessage, true);
+                        return;
+                    }
+
+                    setMessage(messageElement, data?.message || 'Imagem enviada com sucesso!');
+
+                    if (previewElement && data?.url) {
+                        previewElement.src = data.url;
+                        previewElement.classList.remove('hidden');
+                    }
+
+                    fileInput.value = '';
+                } catch (error) {
+                    console.error('Erro no upload da imagem:', error);
+                    setMessage(messageElement, 'Ocorreu um erro inesperado. Tente novamente.', true);
+                } finally {
+                    button.disabled = false;
+                    button.textContent = originalButtonText;
+                }
+            });
         });
     });
 </script>

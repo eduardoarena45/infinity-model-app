@@ -97,6 +97,8 @@ Route::middleware(['auth', 'nocache'])->group(function () {
     Route::get('/meu-perfil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/meu-perfil', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/meu-perfil/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
+    Route::post('/profile/upload-foto-principal', [ProfileController::class, 'uploadFotoPrincipal'])->name('profile.upload-foto-principal');
+    Route::post('/profile/upload-foto-verificacao', [ProfileController::class, 'uploadFotoVerificacao'])->name('profile.upload-foto-verificacao');
 
     // =======================================================
     // ================== FIM DA REORGANIZAÇÃO =================
