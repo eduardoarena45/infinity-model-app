@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
+// INÍCIO DA CORREÇÃO FINAL: Importar a classe Rule para validação condicional
+use Illuminate\Validation\Rule;
+// FIM DA CORREÇÃO FINAL
 
 class ProfileController extends Controller
 {
@@ -20,6 +23,7 @@ class ProfileController extends Controller
      */
     private function aplicarMarcaDagua($caminhoImagemParaProcessar, $extensaoOriginal): string
     {
+        // ... (código inalterado)
         $marcaDaguaPath = storage_path('app/watermark.png');
 
         if (!file_exists($marcaDaguaPath)) {
@@ -75,6 +79,7 @@ class ProfileController extends Controller
 
     public function edit(Request $request): View
     {
+        // ... (código inalterado)
         $user = $request->user();
         $acompanhante = $user->acompanhante()->firstOrCreate(['user_id' => $user->id]);
         $estados = Estado::orderBy('nome')->get();
@@ -102,15 +107,44 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $acompanhante = $user->acompanhante;
-
         $wasProfileIncomplete = empty($acompanhante->getOriginal('nome_artistico'));
 
+        // ETAPA 1: SALVAR AS FOTOS PRIMEIRO, SE ELAS FOREM ENVIADAS.
+        $requerModeracaoDeImagem = false;
+        if ($request->hasFile('foto_principal')) {
+            $request->validate(['foto_principal' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
+
+            if ($acompanhante->foto_principal_path) Storage::disk('public')->delete($acompanhante->foto_principal_path);
+            $imagem = $request->file('foto_principal');
+            $nomeArquivo = 'perfis/' . Str::random(40) . '.jpg';
+            $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
+            Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
+            $acompanhante->foto_principal_path = $nomeArquivo;
+            $requerModeracaoDeImagem = true;
+        }
+
+        if ($request->hasFile('foto_verificacao')) {
+            $request->validate(['foto_verificacao' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']]);
+
+            if ($acompanhante->foto_verificacao_path) Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
+            $path = $request->file('foto_verificacao')->store('documentos_verificacao', 'local');
+            $acompanhante->foto_verificacao_path = $path;
+            $requerModeracaoDeImagem = true;
+        }
+
+        if($requerModeracaoDeImagem) {
+            $acompanhante->save();
+            $acompanhante->refresh();
+        }
+
+        // ETAPA 2: VALIDAR TODOS OS DADOS DO FORMULÁRIO
         $descricaoLimit = $user->getDescricaoLimit();
         $descricaoRules = ['required', 'string'];
         if ($descricaoLimit) {
             $descricaoRules[] = 'max:' . $descricaoLimit;
         }
 
+        // INÍCIO DA CORREÇÃO FINAL: Usar a validação condicional no campo correto.
         $request->validate([
             'nome_artistico' => ['required', 'string', 'max:255'],
             'data_nascimento' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
@@ -119,62 +153,37 @@ class ProfileController extends Controller
             'genero' => ['required', 'string', 'in:mulher,homem,trans'],
             'valor_hora' => ['required', 'numeric', 'min:0'],
             'descricao' => $descricaoRules,
-            'foto_principal' => [$acompanhante->foto_principal_path ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'foto_verificacao' => [$acompanhante->foto_verificacao_path ? 'nullable' : 'required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'foto_principal' => [Rule::requiredIf(!$acompanhante->foto_principal_path)],
+            'foto_verificacao' => [Rule::requiredIf(!$acompanhante->foto_verificacao_path)],
             'valor_15_min' => ['nullable', 'numeric', 'min:0'],
             'valor_30_min' => ['nullable', 'numeric', 'min:0'],
             'valor_pernoite' => ['nullable', 'numeric', 'min:0'],
             'servicos' => ['nullable', 'array'],
             'servicos.*' => ['exists:servicos,id'],
         ], [
+            'foto_principal.required' => 'O campo Foto Principal é obrigatório.',
+            'foto_verificacao.required' => 'O campo Foto de Verificação com Documento é obrigatório.',
             'required' => 'O campo :attribute é obrigatório.',
             'date' => 'O campo :attribute deve ser uma data válida.',
             'before_or_equal' => 'Você deve ter pelo menos 18 anos.',
-            'image' => 'O ficheiro deve ser uma imagem.',
-            'mimes' => 'A imagem deve ser do tipo: :values.',
-            'max' => 'O ficheiro não pode ser maior que :max kilobytes.',
         ]);
+        // FIM DA CORREÇÃO FINAL
 
-        // 1. Prepara um array com todos os dados de texto que vêm do formulário.
+        // ETAPA 3: ATUALIZAR OS DADOS DE TEXTO E O STATUS FINAL
         $dataToUpdate = $request->only([
             'nome_artistico', 'data_nascimento', 'cidade_id', 'whatsapp', 'genero',
             'valor_hora', 'descricao', 'valor_15_min', 'valor_30_min', 'valor_pernoite'
         ]);
 
-        // 2. Lida com o upload da foto principal
-        if ($request->hasFile('foto_principal')) {
-            if ($acompanhante->foto_principal_path) Storage::disk('public')->delete($acompanhante->foto_principal_path);
-            $imagem = $request->file('foto_principal');
-            $nomeArquivo = 'perfis/' . Str::random(40) . '.jpg';
-            $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
-            Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
-            $dataToUpdate['foto_principal_path'] = $nomeArquivo;
-        }
-
-        // 3. Lida com o upload da foto de verificação
-        if ($request->hasFile('foto_verificacao')) {
-            if ($acompanhante->foto_verificacao_path) Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
-            $path = $request->file('foto_verificacao')->store('documentos_verificacao', 'local');
-            $dataToUpdate['foto_verificacao_path'] = $path;
-        }
-
-        // 4. Lida com a lógica de status
         $jaFoiAprovado = in_array($acompanhante->getOriginal('status'), ['aprovado', 'rejeitado']);
-        $requerModeracaoDeImagem = $request->hasFile('foto_principal') || $request->hasFile('foto_verificacao');
-
         if (!($jaFoiAprovado && !$requerModeracaoDeImagem)) {
             $dataToUpdate['status'] = 'pendente';
         }
 
-        // 5. Executa uma única e robusta operação de atualização na base de dados.
         $acompanhante->update($dataToUpdate);
-
-        // 6. Sincroniza os serviços
         $acompanhante->servicos()->sync($request->input('servicos', []));
-
         Cache::flush();
 
-        // 7. Lógica de redirecionamento para o onboarding
         if ($wasProfileIncomplete && !empty($request->nome_artistico)) {
             return redirect()->route('galeria.gerir')->with('status', 'profile-updated-first-time');
         }
@@ -182,6 +191,7 @@ class ProfileController extends Controller
         return back()->with('status', 'profile-updated');
     }
 
+    // ... (resto do código inalterado)
     public function updateAvatar(Request $request): RedirectResponse
     {
         $request->validate(['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);

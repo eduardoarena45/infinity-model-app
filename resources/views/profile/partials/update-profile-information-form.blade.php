@@ -15,7 +15,23 @@
         {{-- Foto Principal --}}
         <div>
             <x-input-label for="foto_principal" value="Foto Principal (Pública)" />
-            <input id="foto_principal" name="foto_principal" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+            <div class="mt-2 flex items-center gap-x-3">
+                {{-- ALTERAÇÃO AQUI: Lógica de exibição do placeholder e preview foi corrigida e simplificada --}}
+                <div id="foto-principal-placeholder" class="h-24 w-24 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center {{ $acompanhante->foto_principal_url ? 'hidden' : '' }}">
+                    <svg class="h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                   </svg>
+                </div>
+                <img id="foto-principal-preview" src="{{ $acompanhante->foto_principal_url ?? '' }}" alt="Preview da Foto Principal" class="h-24 w-24 object-cover rounded-lg {{ !$acompanhante->foto_principal_url ? 'hidden' : '' }}">
+                {{-- FIM DA ALTERAÇÃO --}}
+                <div>
+                    <label for="foto_principal" class="cursor-pointer rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        Anexar Foto
+                    </label>
+                    <input id="foto_principal" name="foto_principal" type="file" class="sr-only" accept="image/*" />
+                    <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP até 2MB.</p>
+                </div>
+            </div>
             <x-input-error class="mt-2" :messages="$errors->get('foto_principal')" />
         </div>
 
@@ -29,22 +45,37 @@
             </p>
             <div class="mt-4">
                 <x-input-label for="foto_verificacao" value="Foto de Verificação com Documento" />
-                <input id="foto_verificacao" name="foto_verificacao" type="file" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                @if($acompanhante->foto_verificacao_path)
-                    <p class="mt-2 text-sm text-green-600">✓ Um documento já foi enviado. Enviar um novo irá substituir o anterior.</p>
-                @endif
+                <div class="mt-2 flex items-center gap-x-3">
+                     {{-- ALTERAÇÃO AQUI: Lógica de exibição do placeholder e preview foi corrigida --}}
+                     <div id="foto-verificacao-placeholder" class="h-24 w-24 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <svg class="h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                     </div>
+                     <img id="foto-verificacao-preview" src="" alt="Preview da Foto de Verificação" class="h-24 w-24 object-cover rounded-lg hidden">
+                     {{-- FIM DA ALTERAÇÃO --}}
+                    <div>
+                        <label for="foto_verificacao" class="cursor-pointer rounded-md bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            Anexar Documento
+                        </label>
+                        <input id="foto_verificacao" name="foto_verificacao" type="file" class="sr-only" accept="image/*" />
+                         <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP até 4MB.</p>
+                        @if($acompanhante->foto_verificacao_path)
+                            <p class="mt-2 text-sm text-green-600">✓ Um documento já foi enviado. Enviar um novo irá substituir o anterior.</p>
+                        @endif
+                    </div>
+                </div>
                 <x-input-error class="mt-2" :messages="$errors->get('foto_verificacao')" />
             </div>
         </div>
 
-        {{-- Nome Artístico --}}
+        {{-- (Restante do formulário continua igual) --}}
+
         <div>
             <x-input-label for="nome_artistico" value="Nome Artístico" />
             <x-text-input id="nome_artistico" name="nome_artistico" type="text" class="mt-1 block w-full" :value="old('nome_artistico', $acompanhante->nome_artistico)" required autofocus />
             <x-input-error class="mt-2" :messages="$errors->get('nome_artistico')" />
         </div>
-
-        {{-- Gênero --}}
         <div>
             <x-input-label for="genero" value="Gênero" />
             <select id="genero" name="genero" class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 rounded-md shadow-sm mt-1 block w-full" required>
@@ -55,15 +86,11 @@
             </select>
             <x-input-error class="mt-2" :messages="$errors->get('genero')" />
         </div>
-
-        {{-- Data de Nascimento --}}
         <div>
             <x-input-label for="data_nascimento" value="Data de Nascimento" />
             <x-text-input id="data_nascimento" name="data_nascimento" type="date" class="mt-1 block w-full" :value="old('data_nascimento', $acompanhante->data_nascimento ? $acompanhante->data_nascimento->format('Y-m-d') : '')" required />
             <x-input-error class="mt-2" :messages="$errors->get('data_nascimento')" />
         </div>
-
-        {{-- Estado --}}
         <div>
             <x-input-label for="estado_id" value="Estado" />
             <select id="estado_id" name="estado_id" required class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full">
@@ -76,34 +103,27 @@
             </select>
             <x-input-error class="mt-2" :messages="$errors->get('estado_id')" />
         </div>
-
-        {{-- Cidade --}}
         <div>
             <x-input-label for="cidade_id" value="Cidade" />
-            <select id="cidade_id" name="cidade_id" required class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full" {{ !$acompanhante->cidade_id ? 'disabled' : '' }}>
+            <select id="cidade_id" name="cidade_id" required class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full" {{ old('estado_id', $acompanhante->cidade->estado_id ?? '') ? '' : 'disabled' }}>
                 <option value="">Selecione um estado primeiro</option>
                  @if ($cidades)
-                      @foreach ($cidades as $cidade)
-                          <option value="{{ $cidade->id }}" {{ old('cidade_id', $acompanhante->cidade_id) == $cidade->id ? 'selected' : '' }}>
-                              {{ $cidade->nome }}
-                          </option>
-                      @endforeach
+                       @foreach ($cidades as $cidade)
+                             <option value="{{ $cidade->id }}" {{ old('cidade_id', $acompanhante->cidade_id) == $cidade->id ? 'selected' : '' }}>
+                                 {{ $cidade->nome }}
+                             </option>
+                       @endforeach
                  @endif
             </select>
             <x-input-error class="mt-2" :messages="$errors->get('cidade_id')" />
         </div>
-
-        {{-- WhatsApp --}}
         <div>
             <x-input-label for="whatsapp" value="WhatsApp" />
             <x-text-input id="whatsapp" name="whatsapp" type="text" class="mt-1 block w-full" :value="old('whatsapp', $acompanhante->whatsapp)" required />
             <x-input-error class="mt-2" :messages="$errors->get('whatsapp')" />
         </div>
-
-        {{-- Descrição com Limite Dinâmico --}}
         <div>
             @php
-                // A variável $descricaoLimit vem do ProfileController@edit
                 $label = 'Descrição';
                 if (isset($descricaoLimit)) {
                     $label .= " (Limite: {$descricaoLimit} caracteres)";
@@ -112,30 +132,23 @@
                 }
             @endphp
             <x-input-label for="descricao" :value="$label" />
-            
             <div x-data="{ count: {{ strlen(old('descricao', $acompanhante->descricao)) }}, limit: {{ $descricaoLimit ?? 'null' }} }">
                 <textarea id="descricao" name="descricao" required
                     x-on:input="count = $event.target.value.length"
                     @if(isset($descricaoLimit)) maxlength="{{ $descricaoLimit }}" @endif
                     class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 rounded-md shadow-sm mt-1 block w-full"
                 >{{ old('descricao', $acompanhante->descricao) }}</textarea>
-                
                 <p x-show="limit" class="text-right text-sm text-gray-500 mt-1" :class="{ 'text-red-500': count > limit }">
                     <span x-text="count"></span> / <span x-text="limit"></span>
                 </p>
             </div>
-            
             <x-input-error class="mt-2" :messages="$errors->get('descricao')" />
         </div>
-
-        {{-- Valor por Hora (Opcional) --}}
         <div>
-            <x-input-label for="valor_hora" value="Valor por Hora (Opcional, Ex: 150.00)" />
-            <x-text-input id="valor_hora" name="valor_hora" type="text" class="mt-1 block w-full" :value="old('valor_hora', $acompanhante->valor_hora)" />
+            <x-input-label for="valor_hora" value="Valor por Hora (Obrigatório, Ex: 150.00)" />
+            <x-text-input id="valor_hora" name="valor_hora" type="text" class="mt-1 block w-full" :value="old('valor_hora', $acompanhante->valor_hora)" required/>
             <x-input-error class="mt-2" :messages="$errors->get('valor_hora')" />
         </div>
-
-        {{-- Preços Adicionais (Opcional) --}}
         <div class="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
                 Preços Adicionais (Opcional)
@@ -159,8 +172,6 @@
                 <x-input-error class="mt-2" :messages="$errors->get('valor_pernoite')" />
             </div>
         </div>
-
-        {{-- Serviços Oferecidos (Opcional) --}}
         <div>
             <x-input-label value="Serviços Oferecidos" />
             <div class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -174,7 +185,6 @@
                 @endforeach
             </div>
         </div>
-
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Salvar') }}</x-primary-button>
             @if (session('status') === 'profile-updated')
@@ -184,40 +194,83 @@
     </form>
 </section>
 
+{{-- O script continua igual à versão anterior, pois a lógica dele já estava correta --}}
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const estadoSelect = document.getElementById('estado_id');
-        const cidadeSelect = document.getElementById('cidade_id');
+document.addEventListener('DOMContentLoaded', function () {
+    const estadoSelect = document.getElementById('estado_id');
+    const cidadeSelect = document.getElementById('cidade_id');
 
-        estadoSelect.addEventListener('change', function () {
-            const estadoId = this.value;
-            cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+    // --- LÓGICA PARA PRÉ-VISUALIZAÇÃO DE IMAGENS ---
+    function setupImagePreview(inputId, previewId, placeholderId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const placeholder = document.getElementById(placeholderId);
+
+        if (input && preview && placeholder) {
+            input.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    preview.src = URL.createObjectURL(file);
+                    preview.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                }
+            });
+        }
+    }
+
+    // --- LÓGICA PARA CARREGAR CIDADES ---
+    function loadCities(estadoId, selectedCidadeId = null) {
+        if (!estadoId) {
+            cidadeSelect.innerHTML = '<option value="">Selecione um estado primeiro</option>';
             cidadeSelect.disabled = true;
+            return;
+        }
 
-            if (!estadoId) {
-                cidadeSelect.innerHTML = '<option value="">Selecione um estado primeiro</option>';
-                return;
-            }
+        cidadeSelect.innerHTML = '<option value="">Carregando...</option>';
+        cidadeSelect.disabled = true;
 
-            fetch(`/api/cidades/${estadoId}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Erro na resposta da rede');
-                    return response.json();
-                })
-                .then(data => {
-                    cidadeSelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
-                    data.forEach(cidade => {
-                        const option = document.createElement('option');
-                        option.value = cidade.id;
-                        option.textContent = cidade.nome;
-                        cidadeSelect.appendChild(option);
-                    });
-                    cidadeSelect.disabled = false;
-                })
-                .catch(error => {
-                    console.error('Erro ao buscar cidades:', error);
-                    cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+        fetch(`/api/cidades/${estadoId}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Erro na resposta da rede');
+                return response.json();
+            })
+            .then(data => {
+                cidadeSelect.innerHTML = '<option value="">Selecione uma Cidade</option>';
+                data.forEach(cidade => {
+                    const option = document.createElement('option');
+                    option.value = cidade.id;
+                    option.textContent = cidade.nome;
+                    if (selectedCidadeId && cidade.id == selectedCidadeId) {
+                        option.selected = true;
+                    }
+                    cidadeSelect.appendChild(option);
                 });
-        });
+                cidadeSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Erro ao buscar cidades:', error);
+                cidadeSelect.innerHTML = '<option value="">Erro ao carregar cidades</option>';
+            });
+    }
+
+    // --- INICIALIZAÇÃO DA PÁGINA ---
+
+    // 1. Configura os previews das imagens
+    setupImagePreview('foto_principal', 'foto-principal-preview', 'foto-principal-placeholder');
+    setupImagePreview('foto_verificacao', 'foto-verificacao-preview', 'foto-verificacao-placeholder');
+
+    // 2. Event listener para quando o usuário MUDA o estado
+    estadoSelect.addEventListener('change', function () {
+        loadCities(this.value);
     });
+
+    // 3. Verifica se a página carregou com um estado já selecionado (após erro de validação)
+    const initialEstadoId = '{{ old('estado_id', $acompanhante->cidade->estado_id ?? '') }}';
+    const initialCidadeId = '{{ old('cidade_id', $acompanhante->cidade_id ?? '') }}';
+
+    if (initialEstadoId) {
+        loadCities(initialEstadoId, initialCidadeId);
+    }
+});
 </script>
+
