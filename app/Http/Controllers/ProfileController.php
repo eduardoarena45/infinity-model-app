@@ -12,9 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
-// INÍCIO DA CORREÇÃO FINAL: Importar a classe Rule para validação condicional
 use Illuminate\Validation\Rule;
-// FIM DA CORREÇÃO FINAL
 
 class ProfileController extends Controller
 {
@@ -109,8 +107,14 @@ class ProfileController extends Controller
         $acompanhante = $user->acompanhante;
         $wasProfileIncomplete = empty($acompanhante->getOriginal('nome_artistico'));
 
+        // =====================================================================
+        // ======================= INÍCIO DA ALTERAÇÃO =======================
+        // =====================================================================
+
+        // A flag agora chama-se 'requerNovaVerificacao' para ser mais clara.
+        $requerNovaVerificacao = false;
+
         // ETAPA 1: SALVAR AS FOTOS PRIMEIRO, SE ELAS FOREM ENVIADAS.
-        $requerModeracaoDeImagem = false;
         if ($request->hasFile('foto_principal')) {
             $request->validate(['foto_principal' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
 
@@ -120,7 +124,8 @@ class ProfileController extends Controller
             $imagemComMarca = $this->aplicarMarcaDagua($imagem->getRealPath(), $imagem->getClientOriginalExtension());
             Storage::disk('public')->put($nomeArquivo, $imagemComMarca);
             $acompanhante->foto_principal_path = $nomeArquivo;
-            $requerModeracaoDeImagem = true;
+
+            // ALTERAÇÃO: A flag de moderação NÃO é mais ativada aqui.
         }
 
         if ($request->hasFile('foto_verificacao')) {
@@ -129,10 +134,13 @@ class ProfileController extends Controller
             if ($acompanhante->foto_verificacao_path) Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
             $path = $request->file('foto_verificacao')->store('documentos_verificacao', 'local');
             $acompanhante->foto_verificacao_path = $path;
-            $requerModeracaoDeImagem = true;
+
+            // ALTERAÇÃO: A flag de moderação SÓ é ativada aqui.
+            $requerNovaVerificacao = true;
         }
 
-        if($requerModeracaoDeImagem) {
+        // Se alguma foto foi alterada, salvamos o modelo
+        if ($request->hasFile('foto_principal') || $request->hasFile('foto_verificacao')) {
             $acompanhante->save();
             $acompanhante->refresh();
         }
@@ -144,7 +152,6 @@ class ProfileController extends Controller
             $descricaoRules[] = 'max:' . $descricaoLimit;
         }
 
-        // INÍCIO DA CORREÇÃO FINAL: Usar a validação condicional no campo correto.
         $request->validate([
             'nome_artistico' => ['required', 'string', 'max:255'],
             'data_nascimento' => ['required', 'date', 'before_or_equal:' . now()->subYears(18)->format('Y-m-d')],
@@ -167,7 +174,6 @@ class ProfileController extends Controller
             'date' => 'O campo :attribute deve ser uma data válida.',
             'before_or_equal' => 'Você deve ter pelo menos 18 anos.',
         ]);
-        // FIM DA CORREÇÃO FINAL
 
         // ETAPA 3: ATUALIZAR OS DADOS DE TEXTO E O STATUS FINAL
         $dataToUpdate = $request->only([
@@ -176,9 +182,15 @@ class ProfileController extends Controller
         ]);
 
         $jaFoiAprovado = in_array($acompanhante->getOriginal('status'), ['aprovado', 'rejeitado']);
-        if (!($jaFoiAprovado && !$requerModeracaoDeImagem)) {
+
+        // ALTERAÇÃO: A lógica agora usa a nova flag.
+        if (!($jaFoiAprovado && !$requerNovaVerificacao)) {
             $dataToUpdate['status'] = 'pendente';
         }
+
+        // =====================================================================
+        // ======================== FIM DA ALTERAÇÃO =========================
+        // =====================================================================
 
         $acompanhante->update($dataToUpdate);
         $acompanhante->servicos()->sync($request->input('servicos', []));
@@ -191,7 +203,8 @@ class ProfileController extends Controller
         return back()->with('status', 'profile-updated');
     }
 
-    // ... (resto do código inalterado)
+    // O resto do arquivo pode continuar igual...
+
     public function updateAvatar(Request $request): RedirectResponse
     {
         $request->validate(['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
