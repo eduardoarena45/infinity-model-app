@@ -24,6 +24,61 @@
             }
             body { font-family: 'Inter', sans-serif; }
             [x-cloak] { display: none !important; }
+
+            .custom-video-player {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                cursor: pointer;
+                background-color: black;
+            }
+            .custom-video-player video {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+            .video-overlay-button {
+                position: absolute;
+                z-index: 10;
+                background-color: rgba(0, 0, 0, 0.5);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color 0.2s;
+                border: none;
+                padding: 0;
+            }
+            .video-overlay-button:hover {
+                background-color: rgba(0, 0, 0, 0.8);
+            }
+            .center-play-button {
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 80px;
+                height: 80px;
+            }
+            .center-play-button svg {
+                width: 40px;
+                height: 40px;
+                margin-left: 5px;
+            }
+            .bottom-left-button {
+                bottom: 20px;
+                left: 20px;
+                width: 40px;
+                height: 40px;
+            }
+            .bottom-left-button svg {
+                width: 20px;
+                height: 20px;
+            }
+            .hidden {
+                display: none !important;
+            }
         </style>
     </head>
     <body class="bg-gray-100 dark:bg-gray-900 text-[--color-neutral] dark:text-gray-300">
@@ -64,16 +119,10 @@
                     </div>
                     <div class="flex items-center space-x-4">
                         @auth
-                            {{-- ======================================================= --}}
-                            {{-- =================== INÍCIO DA ALTERAÇÃO ================== --}}
-                            {{-- ======================================================= --}}
-
-                            {{-- Carregamos os dados do perfil para usar o nome artístico --}}
                             @php
                                 $acompanhante = Auth::user()->loadMissing('acompanhante')->acompanhante;
                             @endphp
 
-                            {{-- Saudação personalizada com link para o painel --}}
                             <a href="{{ url('/dashboard') }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[--color-accent] transition-colors">
                                 Olá, {{ $acompanhante->nome_artistico ?? Auth::user()->name }}
                             </a>
@@ -82,10 +131,6 @@
                                 @csrf
                                 <a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[--color-accent] transition-colors">Sair</a>
                             </form>
-
-                            {{-- ======================================================= --}}
-                            {{-- ==================== FIM DA ALTERAÇÃO ===================== --}}
-                            {{-- ======================================================= --}}
                         @else
                             <a href="{{ route('login') }}" class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-[--color-accent] transition-colors">Login</a>
                             @if (Route::has('register'))
@@ -120,7 +165,69 @@
         {{-- SCRIPTS --}}
         <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
         <script>
-            Fancybox.bind("[data-fancybox]", {});
+            // =======================================================
+            // =========== CORREÇÃO: PAUSAR VÍDEO SEMPRE ============
+            // =======================================================
+            // Observação: limitamos a pausa aos vídeos dentro do Fancybox,
+            // assim nada fora do modal é afetado.
+            const pauseAllFancyboxVideos = (fancyboxInstance) => {
+                // 1) Tenta pausar o slide atual
+                try {
+                    const current = fancyboxInstance.getSlide && fancyboxInstance.getSlide();
+                    if (current && current.$content) {
+                        const v1 = current.$content.querySelectorAll('video');
+                        v1.forEach(v => { if (!v.paused) v.pause(); });
+                    }
+                } catch(e) {}
+
+                // 2) Tenta pausar todos os vídeos de todos os slides desta instância
+                try {
+                    const slides = (fancyboxInstance.Carousel && fancyboxInstance.Carousel.slides) || [];
+                    slides.forEach(slide => {
+                        if (slide && slide.$content) {
+                            const vids = slide.$content.querySelectorAll('video');
+                            vids.forEach(v => { if (!v.paused) v.pause(); });
+                        }
+                    });
+                } catch(e) {}
+
+                // 3) Como fallback, pausa qualquer <video> dentro do container do Fancybox (se existir)
+                try {
+                    const containers = document.querySelectorAll('.fancybox__container');
+                    containers.forEach(c => {
+                        c.querySelectorAll('video').forEach(v => { if (!v.paused) v.pause(); });
+                    });
+                } catch(e) {}
+            };
+
+            Fancybox.bind("[data-fancybox]", {
+                on: {
+                    // Troca de slide dentro do modal: pausa o anterior
+                    'Carousel.change': (fb, carousel, to, from) => {
+                        if (from > -1) {
+                            const prev = carousel.slides[from];
+                            if (prev && prev.$content) {
+                                prev.$content.querySelectorAll('video').forEach(v => { if (!v.paused) v.pause(); });
+                            }
+                        }
+                    },
+                    // Fechamento (após animação)
+                    close: (fb) => {
+                        pauseAllFancyboxVideos(fb);
+                    },
+                    // Fechamento (antes de remover DOM)
+                    closing: (fb) => {
+                        pauseAllFancyboxVideos(fb);
+                    },
+                    // Destruição da instância (garantia extra)
+                    destroy: (fb) => {
+                        pauseAllFancyboxVideos(fb);
+                    }
+                }
+            });
+            // =======================================================
+            // ================== FIM DA CORREÇÃO ====================
+            // =======================================================
 
             document.addEventListener('DOMContentLoaded', function() {
                 const overlay = document.getElementById('age-gate-overlay');
@@ -149,4 +256,3 @@
         @stack('scripts')
     </body>
 </html>
-

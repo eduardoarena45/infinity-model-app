@@ -103,10 +103,7 @@
                     </div>
                 </section>
                 @endif
-                
-                {{-- ======================================================= --}}
-                {{-- === SECÇÃO DA GALERIA REINTEGRADA AQUI === --}}
-                {{-- ======================================================= --}}
+
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Galeria</h3>
                     @if($acompanhante->midias->where('status', 'aprovado')->isNotEmpty())
@@ -117,7 +114,7 @@
                                         <img src="{{ Storage::url($midia->path) }}" class="rounded-lg object-cover w-full h-48 hover:opacity-80 transition-opacity shadow-md" alt="Foto da galeria">
                                     </a>
                                 @elseif($midia->type === 'video' && $midia->thumbnail_path)
-                                    <a href="{{ Storage::url($midia->path) }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
+                                    <a href="#video-player-{{ $midia->id }}" data-fancybox="gallery" data-caption="{{ $acompanhante->nome_artistico }}">
                                         <div class="relative w-full h-48 bg-black rounded-lg shadow-md group">
                                             <img src="{{ Storage::url($midia->thumbnail_path) }}" class="w-full h-full object-cover rounded-lg group-hover:opacity-80 transition-opacity" alt="Capa do vídeo">
                                             <div class="absolute inset-0 flex items-center justify-center">
@@ -127,6 +124,24 @@
                                             </div>
                                         </div>
                                     </a>
+
+                                    <div style="display:none;" id="video-player-{{ $midia->id }}">
+                                        <div class="custom-video-player">
+                                            <video class="video-element" playsinline>
+                                                <source src="{{ Storage::url($midia->path) }}" type="video/mp4">
+                                                Seu navegador não suporta a tag de vídeo.
+                                            </video>
+
+                                            <div class="center-play-button video-overlay-button">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" /></svg>
+                                            </div>
+
+                                            <button class="mute-button bottom-left-button video-overlay-button">
+                                                <svg class="volume-on-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M7.43 8.583a.75.75 0 011.06 1.06l-1.72 1.72a.75.75 0 01-1.06-1.06l1.72-1.72zM10 11.25a.75.75 0 01.75-.75h.008a.75.75 0 01.75.75v.008a.75.75 0 01-.75.75h-.008a.75.75 0 01-.75-.75v-.008zM12.57 8.583a.75.75 0 011.06-1.06l1.72 1.72a.75.75 0 11-1.06 1.06l-1.72-1.72z" /><path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM3 10a7 7 0 1114 0 7 7 0 01-14 0z" clip-rule="evenodd" /></svg>
+                                                <svg class="volume-off-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM3 10a7 7 0 1114 0 7 7 0 01-14 0z" clip-rule="evenodd" /><path d="M14.72 14.72a.75.75 0 01-1.06 0L10 11.06l-3.66 3.66a.75.75 0 01-1.06-1.06L8.94 10 5.28 6.34a.75.75 0 011.06-1.06L10 8.94l3.66-3.66a.75.75 0 011.06 1.06L11.06 10l3.66 3.66a.75.75 0 010 1.06z" /></svg>
+                                            </button>
+                                        </div>
+                                    </div>
                                 @endif
                             @endforeach
                         </div>
@@ -134,10 +149,7 @@
                         <p class="text-gray-500 text-center">Nenhuma mídia na galeria ainda.</p>
                     @endif
                 </section>
-                
-                {{-- ======================================================= --}}
-                {{-- === SECÇÃO DE AVALIAÇÕES REINTEGRADA AQUI === --}}
-                {{-- ======================================================= --}}
+
                 <section>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-4 border-b dark:border-gray-700 pb-2">Avaliações de Clientes</h3>
                     @if(session('success'))
@@ -159,14 +171,14 @@
                                     @error('comentario') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
-                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sua Nota</label>
-                                     <div class="flex flex-row-reverse justify-end items-center">
-                                         @for ($i = 5; $i >= 1; $i--)
-                                             <input type="radio" id="nota-{{$i}}" name="nota" value="{{$i}}" class="sr-only peer" required>
-                                             <label for="nota-{{$i}}" class="text-gray-300 dark:text-gray-600 cursor-pointer text-3xl peer-hover:text-yellow-400 peer-checked:text-yellow-400 hover:text-yellow-400">★</label>
-                                         @endfor
-                                     </div>
-                                     @error('nota') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sua Nota</label>
+                                      <div class="flex flex-row-reverse justify-end items-center">
+                                          @for ($i = 5; $i >= 1; $i--)
+                                              <input type="radio" id="nota-{{$i}}" name="nota" value="{{$i}}" class="sr-only peer" required>
+                                              <label for="nota-{{$i}}" class="text-gray-300 dark:text-gray-600 cursor-pointer text-3xl peer-hover:text-yellow-400 peer-checked:text-yellow-400 hover:text-yellow-400">★</label>
+                                          @endfor
+                                      </div>
+                                      @error('nota') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 </div>
                                 <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Enviar Avaliação</button>
                             </div>
@@ -197,10 +209,69 @@
                 </section>
             </div>
         </div>
-        
+
         <div class="text-center mt-8">
             <a href="javascript:history.back()" class="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white">&larr; Voltar</a>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const videoPlayers = document.querySelectorAll('.custom-video-player');
+
+    videoPlayers.forEach(player => {
+        const video = player.querySelector('.video-element');
+        const playButton = player.querySelector('.center-play-button');
+        const muteButton = player.querySelector('.mute-button');
+        const volumeOnIcon = player.querySelector('.volume-on-icon');
+        const volumeOffIcon = player.querySelector('.volume-off-icon');
+        let isFirstPlay = true;
+
+        // Função para alternar Play/Pause
+        function togglePlay() {
+            if (video.paused) {
+                if (isFirstPlay) {
+                    video.volume = 0.5; // Define volume para 50% na primeira vez
+                    isFirstPlay = false;
+                }
+                video.play();
+            } else {
+                video.pause();
+            }
+        }
+
+        // Função para atualizar os ícones
+        function updateUI() {
+            if (video.paused) {
+                playButton.classList.remove('hidden');
+            } else {
+                playButton.classList.add('hidden');
+            }
+
+            if (video.muted || video.volume === 0) {
+                volumeOnIcon.classList.add('hidden');
+                volumeOffIcon.classList.remove('hidden');
+            } else {
+                volumeOnIcon.classList.remove('hidden');
+                volumeOffIcon.classList.add('hidden');
+            }
+        }
+
+        // Eventos
+        player.addEventListener('click', togglePlay);
+        video.addEventListener('play', updateUI);
+        video.addEventListener('pause', updateUI);
+        video.addEventListener('ended', updateUI); // Garante que o botão de play reaparece no final
+
+        muteButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            video.muted = !video.muted;
+            updateUI();
+        });
+    });
+});
+</script>
+@endpush
