@@ -116,7 +116,7 @@ class ProfileController extends Controller
 
         // ETAPA 1: SALVAR AS FOTOS PRIMEIRO, SE ELAS FOREM ENVIADAS.
         if ($request->hasFile('foto_principal')) {
-            $request->validate(['foto_principal' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
+            $request->validate(['foto_principal' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240']]);
 
             if ($acompanhante->foto_principal_path) Storage::disk('public')->delete($acompanhante->foto_principal_path);
             $imagem = $request->file('foto_principal');
@@ -129,7 +129,8 @@ class ProfileController extends Controller
         }
 
         if ($request->hasFile('foto_verificacao')) {
-            $request->validate(['foto_verificacao' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096']]);
+            $request->validate(['foto_verificacao' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240']]);
+
 
             if ($acompanhante->foto_verificacao_path) Storage::disk('local')->delete($acompanhante->foto_verificacao_path);
             $path = $request->file('foto_verificacao')->store('documentos_verificacao', 'local');
@@ -207,7 +208,7 @@ class ProfileController extends Controller
 
     public function updateAvatar(Request $request): RedirectResponse
     {
-        $request->validate(['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
+        $request->validate(['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240']]);
         $user = $request->user();
 
         if ($user->private_avatar_path) {
@@ -254,7 +255,7 @@ class ProfileController extends Controller
             return back()->with('type', 'photo')->with('error_message', "Limite de {$limit} fotos atingido!");
         }
 
-        $request->validate(['fotos' => 'required', 'fotos.*' => 'image|mimes:jpeg,png,jpg,webp|max:5120']);
+        $request->validate(['fotos' => 'required', 'fotos.*' => 'image|mimes:jpeg,png,jpg,webp|max:10240']);
 
         $newMediaStatus = $user->acompanhante?->status === 'aprovado' ? 'aprovado' : 'pendente';
 
@@ -301,7 +302,7 @@ class ProfileController extends Controller
 
         $request->validate([
             'videos' => 'required',
-            'videos.*' => 'mimetypes:video/mp4,video/quicktime,video/mpeg|max:20480'
+            'videos.*' => 'mimetypes:video/mp4,video/quicktime,video/mpeg|max:51200'
         ]);
 
         $newMediaStatus = $user->acompanhante?->status === 'aprovado' ? 'aprovado' : 'pendente';

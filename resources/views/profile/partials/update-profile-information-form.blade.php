@@ -29,7 +29,7 @@
                         Anexar Foto
                     </label>
                     <input id="foto_principal" name="foto_principal" type="file" class="sr-only" accept="image/*" />
-                    <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP até 2MB.</p>
+                    <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP até 10MB.</p>
                 </div>
             </div>
             <x-input-error class="mt-2" :messages="$errors->get('foto_principal')" />
@@ -59,7 +59,7 @@
                             Anexar Documento
                         </label>
                         <input id="foto_verificacao" name="foto_verificacao" type="file" class="sr-only" accept="image/*" />
-                         <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP até 4MB.</p>
+                         <p class="text-xs text-gray-500 mt-1">PNG, JPG, WEBP até 10MB.</p>
                         @if($acompanhante->foto_verificacao_path)
                             <p class="mt-2 text-sm text-green-600">✓ Um documento já foi enviado. Enviar um novo irá substituir o anterior.</p>
                         @endif
