@@ -35,7 +35,7 @@ class GenerateSitemap extends Command
             $cityParam = $this->cityParamFromModel($cidade);
 
             foreach ($genders as $gender) {
-                $loc = url("/vitrine/{$gender}/{$cityParam}");
+                $loc = url("/acompanhantes/{$gender}/{$cityParam}");
                 $urls[] = [
                     'loc' => $loc,
                     'lastmod' => $cidade->updated_at ?? $cidade->created_at ?? now(),

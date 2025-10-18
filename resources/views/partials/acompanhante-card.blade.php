@@ -65,7 +65,7 @@ use Illuminate\Support\Facades\Storage;
 
     {{-- O contentor da imagem agora é relativo para posicionar as setas --}}
     <div class="relative">
-        <a href="{{ route('vitrine.show', $perfil) }}">
+        <a href="{{ route('acompanhantes.show', $perfil) }}">
             <img :src="images[currentIndex]" alt="Foto de {{ $perfil->nome_artistico }}" class="w-full h-48 sm:h-64 object-cover transition-opacity duration-300">
         </a>
 
@@ -110,7 +110,7 @@ use Illuminate\Support\Facades\Storage;
 
     {{-- O resto do seu card, que já está perfeito, continua aqui sem alterações --}}
     <div class="p-2 sm:p-3">
-        <a href="{{ route('vitrine.show', $perfil->id) }}" class="block">
+        <a href="{{ route('acompanhantes.show', $perfil->id) }}" class="block">
             <h3 class="text-sm sm:text-base font-semibold text-[--color-primary] dark:text-white truncate">{{ $perfil->nome_artistico }}</h3>
             <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{{ $perfil->cidade->nome ?? 'Cidade' }}</p>
             <div class="flex items-center mt-1">
@@ -123,7 +123,7 @@ use Illuminate\Support\Facades\Storage;
 
         <div x-data="{ open: false }" class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
             <div class="flex justify-between items-center">
-                <a href="{{ route('vitrine.show', $perfil->id) }}" class="block">
+                <a href="{{ route('acompanhantes.show', $perfil->id) }}" class="block">
                     <p class="text-base sm:text-lg font-bold text-green-600 dark:text-green-400">
                         R$ {{ number_format($perfil->valor_hora, 2, ',', '.') }}
                         <span class="text-xs font-normal text-gray-500">/ hora</span>
@@ -138,7 +138,7 @@ use Illuminate\Support\Facades\Storage;
             <div x-show="open" x-cloak x-transition class="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700/50 space-y-1 text-xs sm:text-sm">
                 @if($perfil->valor_15_min)
                     <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                        <span>15 Minutos</span>
+                        <span>15 Minutos</span>f
                         <span class="font-semibold">R$ {{ number_format($perfil->valor_15_min, 2, ',', '.') }}</span>
                     </div>
                 @endif

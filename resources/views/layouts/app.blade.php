@@ -1,29 +1,64 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>{{ config('app.name', 'Laravel') }} - Painel</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <!-- Favicons -->
-        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}">
-        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/favicon-32x32.png') }}">
-        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon/favicon-16x16.png') }}">
-        <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}">
-        <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}">
+    {{-- ======================================================= --}}
+    {{-- ===================== SEO BÁSICO ======================= --}}
+    {{-- ======================================================= --}}
+    <title>@yield('title', config('app.name', 'Infinity Model'))</title>
+    <meta name="description" content="@yield('description', 'Encontre acompanhantes em todo o Brasil — Mulheres, homens e trans em diversas cidades. Perfis verificados e fotos reais.')">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url()->current() }}">
 
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        <style>
-            :root {
-                --color-primary: #4E2A51;
-                --color-accent: #B76E79;
-                --color-neutral: #36454F;
-            }
-            [x-cloak] { display: none !important; }
-        </style>
-    </head>
+    {{-- ======================================================= --}}
+    {{-- ================== OPEN GRAPH (FACEBOOK) =============== --}}
+    {{-- ======================================================= --}}
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Infinity Model">
+    <meta property="og:title" content="@yield('title', 'Infinity Model — Encontre acompanhantes no Brasil')">
+    <meta property="og:description" content="@yield('description', 'Veja acompanhantes reais e verificados em várias cidades do Brasil.')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="@yield('image', asset('images/og-image.jpg'))">
+
+    {{-- ======================================================= --}}
+    {{-- ===================== TWITTER CARDS =================== --}}
+    {{-- ======================================================= --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title', 'Infinity Model — Acompanhantes de Luxo')">
+    <meta name="twitter:description" content="@yield('description', 'Perfis reais, fotos verificadas e acompanhantes disponíveis em várias cidades.')">
+    <meta name="twitter:image" content="@yield('image', asset('images/og-image.jpg'))">
+
+    {{-- ======================================================= --}}
+    {{-- ===================== FAVICONS ========================= --}}
+    {{-- ======================================================= --}}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}">
+
+    {{-- ======================================================= --}}
+    {{-- ===================== ASSETS =========================== --}}
+    {{-- ======================================================= --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {{-- ======================================================= --}}
+    {{-- ===================== ESTILOS GERAIS =================== --}}
+    {{-- ======================================================= --}}
+    <style>
+        :root {
+            --color-primary: #4E2A51;
+            --color-accent: #B76E79;
+            --color-neutral: #36454F;
+        }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+
     <body class="font-sans antialiased">
         <div x-data="{ mobileMenuOpen: false }" class="min-h-screen bg-gray-100 dark:bg-gray-900">
 
@@ -48,7 +83,7 @@
                             {{-- Condição mais robusta, que verifica também se a cidade existe --}}
                             @if ($acompanhante && $acompanhante->cidade && $acompanhante->status === 'aprovado' && $acompanhante->isPubliclyReady())
                                 {{-- O link agora leva para a VITRINE DA CIDADE e abre na MESMA ABA --}}
-                                <a href="{{ route('vitrine.por.cidade', ['genero' => $acompanhante->genero, 'cidade' => $acompanhante->cidade->nome]) }}" title="Ver a vitrine da minha cidade" class="text-2xl font-bold text-gray-800 dark:text-white">
+                                <a href="{{ route('acompanhantes.por.cidade', ['genero' => $acompanhante->genero, 'cidade' => $acompanhante->cidade->nome]) }}" title="Ver a vitrine da minha cidade" class="text-2xl font-bold text-gray-800 dark:text-white">
                                     Infinity Model
                                 </a>
                             @else

@@ -19,15 +19,24 @@ use App\Http\Controllers\SitemapController;
 
 // --- ROTAS PÚBLICAS (PARA VISITANTES) ---
 Route::get('/', [VitrineController::class, 'listarCidades'])->name('cidades.index');
+// Rota que serve o sitemap.xml dinâmico
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/termos-de-servico', function () { return view('legal.termos'); })->name('termos');
 Route::get('/politica-de-privacidade', function () { return view('legal.privacidade'); })->name('privacidade');
-Route::get('/vitrine/{genero}/{cidade}', [VitrineController::class, 'mostrarPorCidade'])->name('vitrine.por.cidade');
-Route::get('/perfil/{acompanhante}', [VitrineController::class, 'show'])->name('vitrine.show');
-Route::post('/perfil/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
+// Páginas de acompanhantes por gênero e cidade
+Route::get('/acompanhantes/{genero}/{cidade}', [VitrineController::class, 'mostrarPorCidade'])
+    ->where(['genero' => 'mulher|homem|trans'])
+    ->name('acompanhantes.por.cidade');
+
+// Página de perfil individual
+Route::get('/acompanhante/{acompanhante}', [VitrineController::class, 'show'])->name('acompanhantes.show');
+
+// Avaliação de perfil
+Route::post('/acompanhante/{acompanhante}/avaliar', [VitrineController::class, 'storeAvaliacao'])->name('avaliacoes.store');
+
 Route::get('/api/cidades/{estado}', [LocalController::class, 'getCidadesPorEstado'])->name('api.cidades');
 Route::get('/api/acompanhante/{acompanhante}/galeria', [VitrineController::class, 'getGaleriaFotos'])->name('api.acompanhante.galeria');
-// Rota que serve o sitemap.xml dinâmico
-Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+
 
 // --- ROTAS PRIVADAS (PARA UTILIZADORAS LOGADAS) ---
 Route::middleware(['auth', 'nocache'])->group(function () {

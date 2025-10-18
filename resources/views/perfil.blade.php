@@ -1,9 +1,9 @@
 @extends('layouts.public')
 
-@section('title', "Perfil de {$acompanhante->nome_artistico}")
-
+@section('title', "{$acompanhante->nome_artistico} — Acompanhante em {$acompanhante->cidade->nome} | Infinity Model")
+@section('description', "Veja o perfil completo de {$acompanhante->nome_artistico}, acompanhante {$acompanhante->genero} em {$acompanhante->cidade->nome}. Fotos reais, serviços, avaliações e informações de contato.")
+@section('image', asset('storage/'.$acompanhante->foto_principal_path))
 @section('content')
-
 <div class="bg-gray-100 dark:bg-gray-900 py-12">
     <div class="container mx-auto px-4">
 

@@ -99,7 +99,7 @@
                 if (cidadeNome) {
                     // Monta a URL da vitrine e redireciona o usuário
                     // Redireciona para a categoria "mulher" por padrão
-                    window.location.href = `/vitrine/mulher/${cidadeNome}`;
+                    window.location.href = `/acompanhantes/mulher/${cidadeNome}`;
                 }
             });
         }
